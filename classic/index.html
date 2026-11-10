@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zhe Linqi — RL &amp; Robotics Researcher, Founder</title>
+  <meta name="description" content="Zhe Linqi — RL/robotics researcher turned founder. Sole author of FORGE, state of the art in fully automated LLM reward search. Now building Gravit: plug-and-play post-training for everyone." />
+  <meta property="og:title" content="Zhe Linqi" />
+  <meta property="og:description" content="RL/robotics researcher turned founder. Sole author of FORGE. Now building Gravit." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://linqizhe07.github.io/classic/" />
+  <meta property="og:image" content="https://linqizhe07.github.io/assets/og.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://linqizhe07.github.io/assets/og.jpg" />
+  <link rel="canonical" href="https://linqizhe07.github.io/classic/" />
+  <meta name="theme-color" content="#faf9f4" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23faf9f4'/%3E%3Ctext x='32' y='43' font-family='Georgia,serif' font-size='30' fill='%23ad4d2c' text-anchor='middle'%3EZL%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Zhe Linqi",
+    "email": "mailto:linqizhe@engineering.upenn.edu",
+    "url": "https://linqizhe07.github.io",
+    "sameAs": ["https://github.com/linqizhe07", "https://www.linkedin.com/in/linqi-zhe-1451b8388/"],
+    "jobTitle": "RL / Robotics Researcher & Founder",
+    "affiliation": {
+      "@type": "CollegeOrUniversity",
+      "name": "University of Pennsylvania"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <div class="progress" id="progress" aria-hidden="true"></div>
+
+  <header class="nav" id="nav">
+    <a class="nav-logo" href="#top" aria-label="linqi — home">linq<span class="accent">i</span></a>
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Menu">
+      <span aria-hidden="true"></span><span aria-hidden="true"></span>
+    </button>
+    <nav class="nav-links" id="navLinks" aria-label="Primary">
+      <a href="#now" data-section="now">Now</a>
+      <a href="#research" data-section="research">Research</a>
+      <a href="#experience" data-section="experience">Experience</a>
+      <a href="#education" data-section="education">Education</a>
+      <a href="#skills" data-section="skills">Skills</a>
+      <a href="#life" data-section="life">Life</a>
+      <a href="#contact" data-section="contact" class="nav-cta">Contact</a>
+    </nav>
+  </header>
+
+  <main id="top">
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="hero">
+      <canvas id="field" aria-hidden="true"></canvas>
+      <div class="hero-glow" aria-hidden="true"></div>
+
+      <div class="hero-inner">
+        <p class="hero-kicker reveal mono">Philadelphia, PA — GRASP Laboratory, UPenn</p>
+        <h1 class="hero-name reveal">Zhe&nbsp;Linqi</h1>
+        <div class="hero-role reveal">
+          <!-- keep in sync with the roles array in main.js -->
+          <span class="visually-hidden">RL researcher, robotics builder, web3 builder, cofounder of Gravit, GRASP Lab @ Penn</span>
+          <span class="mono role-prefix" aria-hidden="true">//</span>
+          <span class="role-swap" aria-hidden="true"><span class="role-word" id="roleWord">RL researcher</span></span>
+        </div>
+        <p class="hero-lede reveal">
+          RL/robotics researcher turned founder. Sole author of
+          <a class="lede-link" href="https://linqizhe07.github.io/forge" target="_blank" rel="noopener">FORGE</a>
+          — state of the art in fully automated LLM reward search — deployed commercially
+          at Phibotics for clients including Unitree. Built Bounty.ai&rsquo;s agent-market
+          community from zero. Now building <strong>Gravit</strong>: plug-and-play
+          post-training for everyone.
+        </p>
+        <div class="hero-actions reveal">
+          <a class="btn btn-solid" href="https://linqizhe07.github.io/forge" target="_blank" rel="noopener">Explore FORGE</a>
+          <a class="btn btn-ghost" href="https://github.com/linqizhe07" target="_blank" rel="noopener">GitHub</a>
+          <a class="btn btn-ghost" href="https://www.linkedin.com/in/linqi-zhe-1451b8388/" target="_blank" rel="noopener">LinkedIn</a>
+          <a class="btn btn-ghost" href="mailto:linqizhe@engineering.upenn.edu">Email</a>
+        </div>
+
+        <dl class="hero-stats reveal">
+          <div class="stat">
+            <dt class="mono">SOTA</dt>
+            <dd>among fully automated LLM reward-search methods, on three MuJoCo benchmarks</dd>
+          </div>
+          <div class="stat">
+            <dt class="mono">10&times; less</dt>
+            <dd>per-individual compute than the prior best on Humanoid Locomotion &amp; Standup</dd>
+          </div>
+          <div class="stat">
+            <dt class="mono">0 &rarr; 1</dt>
+            <dd>agent-market community built from zero at Bounty.ai</dd>
+          </div>
+        </dl>
+      </div>
+
+      <a class="scroll-hint" href="#now" aria-label="Scroll to content">
+        <span class="scroll-line" aria-hidden="true"></span>
+        <span class="mono">scroll</span>
+      </a>
+    </section>
+
+    <!-- ================= NOW ================= -->
+    <section class="section" id="now">
+      <div class="section-head reveal">
+        <span class="mono section-index">01</span>
+        <h2>Now</h2>
+      </div>
+      <div class="now-card reveal">
+        <div class="now-pulse" aria-hidden="true"><span></span></div>
+        <div>
+          <h3>Building <span class="accent">Gravit</span></h3>
+          <p>
+            Plug-and-play post-training for everyone. Taking what FORGE proved on
+            benchmarks — and what Phibotics proved with commercial clients — and turning
+            it into a product anyone can use.
+          </p>
+          <div class="effort">
+            <div class="effort-head mono">
+              <span>Post-training effort</span>
+              <span class="effort-value" id="effortValue">ultra</span>
+            </div>
+            <div class="effort-labels mono" aria-hidden="true">
+              <span>faster</span><span>smarter</span>
+            </div>
+            <canvas class="effort-strip" id="effortStrip" tabindex="0" role="slider"
+                    aria-label="Post-training effort — left is faster, right is smarter"
+                    aria-valuemin="0" aria-valuemax="3"
+                    aria-valuenow="3" aria-valuetext="ultra"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RESEARCH ================= -->
+    <section class="section" id="research">
+      <div class="section-head reveal">
+        <span class="mono section-index">02</span>
+        <h2>Research &amp; Projects</h2>
+      </div>
+
+      <article class="feature-card reveal" id="tiltCard">
+        <div class="feature-tags mono">
+          <span>Publication</span><span>Sole author</span><span>Oct 2025 — May 2026</span>
+        </div>
+        <h3 class="feature-title">
+          <a href="https://linqizhe07.github.io/forge" target="_blank" rel="noopener">
+            FORGE: Fine-Tuning Over Reward Generations through Evolution
+            <svg class="ext" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3zM5 5h6v2H7v10h10v-4h2v6H5V5z"/></svg>
+          </a>
+        </h3>
+        <p class="feature-body">
+          Rewards and policies evolve together: an LLM writes the reward functions,
+          and pretrained successor features let policies adapt to each new reward
+          <em>instantly</em> — no retraining. Conceived and built end-to-end, solo.
+        </p>
+        <p class="feature-claim">
+          <span class="accent">New state of the art</span> among fully automated
+          LLM reward-search methods on three MuJoCo benchmarks — beating the prior
+          best at one-tenth the compute.
+        </p>
+        <div class="feature-links mono">
+          <a href="https://linqizhe07.github.io/forge" target="_blank" rel="noopener">project page &nearr;</a>
+          <a href="https://github.com/linqizhe07/forge" target="_blank" rel="noopener">code &nearr;</a>
+        </div>
+      </article>
+
+      <article class="card reveal">
+        <div class="feature-tags mono">
+          <span>Lead researcher</span><span>Jan — May 2026</span>
+        </div>
+        <h3>Learned Dispatch Policies for Multi-Line Task Scheduling</h3>
+        <p>
+          Taught three different policies — supervised, LLM, and RL — to schedule a
+          multi-robot assembly line, then proved with queueing theory why
+          <em>none of them can beat First-Come-First-Served</em>, and exactly what
+          would change that.
+        </p>
+      </article>
+    </section>
+
+    <!-- ================= EXPERIENCE ================= -->
+    <section class="section" id="experience">
+      <div class="section-head reveal">
+        <span class="mono section-index">03</span>
+        <h2>Experience</h2>
+      </div>
+
+      <div class="timeline">
+        <article class="t-item reveal">
+          <div class="t-dot" aria-hidden="true"></div>
+          <div class="t-meta mono">June — July 2026 · Shenzhen, China</div>
+          <h3>Phibotics <span class="t-role">— Reinforcement Learning Intern</span></h3>
+          <p>
+            Took FORGE beyond benchmarks: trained locomotion and whole-body policies
+            for robot makers including <strong>Unitree Robotics</strong> — real skills,
+            delivered to real clients.
+          </p>
+        </article>
+
+        <article class="t-item reveal">
+          <div class="t-dot" aria-hidden="true"></div>
+          <div class="t-meta mono"><a href="https://bounty.ai" target="_blank" rel="noopener">bounty.ai &nearr;</a></div>
+          <h3>Bounty.ai <span class="t-role">— Agent Bounty Marketplace</span></h3>
+          <p>
+            Helped ship the launch, then grew the agent-market community from zero —
+            builders on one side, bounty posters on the other.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================= EDUCATION ================= -->
+    <section class="section" id="education">
+      <div class="section-head reveal">
+        <span class="mono section-index">04</span>
+        <h2>Education</h2>
+      </div>
+
+      <div class="edu-grid">
+        <article class="card reveal">
+          <div class="t-meta mono">Sept 2025 — May 2027 (expected) · Philadelphia, PA</div>
+          <h3>University of Pennsylvania</h3>
+          <p class="edu-degree">M.S.E. in Mechanical Engineering and Applied Mechanics · GPA 3.80/4.00</p>
+          <p>
+            GRASP Laboratory — advised by Prof.&nbsp;M.&nbsp;Ani&nbsp;Hsieh and
+            Prof.&nbsp;Dinesh&nbsp;Jayaraman.
+          </p>
+        </article>
+
+        <article class="card reveal">
+          <div class="t-meta mono">Sept 2021 — May 2025 · Hangzhou, China</div>
+          <h3>Zhejiang University</h3>
+          <p class="edu-degree">B.Eng. in Chemical Engineering</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================= SKILLS ================= -->
+    <section class="section" id="skills">
+      <div class="section-head reveal">
+        <span class="mono section-index">05</span>
+        <h2>Skills</h2>
+      </div>
+
+      <div class="skill-rows">
+        <div class="skill-row reveal">
+          <h3 class="mono">Reinforcement Learning</h3>
+          <ul class="chips"><li>SAC</li><li>PPO (from scratch)</li><li>reward shaping</li><li>exploration bonuses (RND)</li></ul>
+        </div>
+        <div class="skill-row reveal">
+          <h3 class="mono">Evolutionary Search</h3>
+          <ul class="chips"><li>island-based evolution</li><li>quality-diversity methods</li><li>automated reward design</li></ul>
+        </div>
+        <div class="skill-row reveal">
+          <h3 class="mono">LLM Fine-Tuning &amp; Post-Training</h3>
+          <ul class="chips"><li>SFT of open-weights models</li><li>RLHF-style post-training</li><li>prompt engineering</li></ul>
+        </div>
+        <div class="skill-row reveal">
+          <h3 class="mono">ML Engineering</h3>
+          <ul class="chips"><li>PyTorch</li><li>Stable-Baselines3</li><li>Hydra</li><li>Weights &amp; Biases</li><li>Docker</li><li>multi-GPU training</li></ul>
+        </div>
+        <div class="skill-row reveal">
+          <h3 class="mono">Simulation &amp; Benchmarks</h3>
+          <ul class="chips"><li>MuJoCo</li><li>Gymnasium / Gymnasium-Robotics</li><li>D4RL</li></ul>
+        </div>
+        <div class="skill-row reveal">
+          <h3 class="mono">Programming &amp; Hardware</h3>
+          <ul class="chips"><li>Python</li><li>C/C++</li><li>MATLAB</li><li>ESP32 / ATmega32U4 autonomous vehicle</li></ul>
+        </div>
+        <div class="skill-row reveal">
+          <h3 class="mono">Languages</h3>
+          <ul class="chips"><li>English (fluent)</li><li>Chinese (native)</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= LIFE ================= -->
+    <section class="section" id="life">
+      <div class="section-head reveal">
+        <span class="mono section-index">06</span>
+        <h2>Beyond the lab</h2>
+      </div>
+      <div class="life-grid">
+        <figure class="life-photo reveal">
+          <img src="assets/portrait.jpg" width="933" height="1400" loading="lazy"
+               alt="Zhe Linqi in a graduation gown, sitting cross-legged in a bright arched glass corridor" />
+          <figcaption class="mono">Graduation day, ZJU 2025 &middot; pose credit: Mbapp&eacute;</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ================= CONTACT ================= -->
+    <section class="section contact" id="contact">
+      <div class="section-head reveal">
+        <span class="mono section-index">07</span>
+        <h2>Contact</h2>
+      </div>
+      <p class="contact-lede reveal">
+        Working on robot learning, agent economy, or crypto?
+        I&rsquo;d love to hear from you.
+      </p>
+      <div class="hero-actions reveal">
+        <a class="btn btn-solid" href="mailto:linqizhe@engineering.upenn.edu">linqizhe@engineering.upenn.edu</a>
+        <a class="btn btn-ghost" href="mailto:linqizhe07@gmail.com">linqizhe07@gmail.com</a>
+        <a class="btn btn-ghost" href="https://github.com/linqizhe07" target="_blank" rel="noopener">github.com/linqizhe07</a>
+        <a class="btn btn-ghost" href="https://www.linkedin.com/in/linqi-zhe-1451b8388/" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <span class="mono">© <span id="year">2026</span> Zhe Linqi</span>
+    <span class="mono">Philadelphia, PA · designed &amp; built by hand</span>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

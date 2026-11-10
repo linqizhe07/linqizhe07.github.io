@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Zhe Linqi — /linqi</title>
+<meta name="description" content="Zhe Linqi — RL/robotics researcher turned founder. Sole author of FORGE, state of the art in fully automated LLM reward search. Now building Gravit: plug-and-play post-training for everyone.">
+<meta property="og:title" content="Zhe Linqi">
+<meta property="og:description" content="RL/robotics researcher turned founder. Sole author of FORGE. Now building Gravit.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://linqizhe07.github.io/">
+<meta property="og:image" content="https://linqizhe07.github.io/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://linqizhe07.github.io/assets/og.jpg">
+<link rel="canonical" href="https://linqizhe07.github.io/">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f2e9" media="(prefers-color-scheme: light)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%230a1f5e'/%3E%3Cpath fill='%2386c2f8' d='M2 12h2v2H2zM4 9h2v3H4zM6 6h2v3H6zM8 3h2v3H8z'/%3E%3Cpath fill='%23f55a30' d='M11 3h2v9h-2zM11 12h3v2h-3z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+<script>
+/* Light or dark, English or Chinese, decided before anything is painted: the reader's own choice if there is one, else the system's. */
+(function () {
+  var r = document.documentElement, t = null, l = null;
+  try { t = localStorage.getItem('theme'); l = localStorage.getItem('lang'); } catch (e) {}
+  if (t === 'dark' || t === 'light') r.setAttribute('data-theme', t);
+  if (l !== 'en' && l !== 'zh') {
+    l = 'en';
+    var a = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
+    for (var i = 0; i < a.length; i++) { var k = String(a[i]).slice(0, 2).toLowerCase(); if (k === 'zh') { l = 'zh'; break; } if (k === 'en') break; }
+  }
+  r.lang = l === 'zh' ? 'zh-Hans' : 'en';
+  r.className = 'js top';
+})();
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Zhe Linqi",
+  "email": "mailto:linqizhe@engineering.upenn.edu",
+  "url": "https://linqizhe07.github.io",
+  "sameAs": ["https://github.com/linqizhe07", "https://www.linkedin.com/in/linqi-zhe-1451b8388/"],
+  "jobTitle": "RL / Robotics Researcher & Founder",
+  "affiliation": { "@type": "CollegeOrUniversity", "name": "University of Pennsylvania" }
+}
+</script>
+</head>
+<body>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<a class="skip" href="#desk"><span class="en">Skip to content</span><span class="zh" lang="zh-Hans">跳到正文</span></a>
+<a id="home" href="#top" aria-label="/linqi — back to top"><span data-n="/linqi">/linqi</span></a>
+
+<div id="prefs">
+  <button class="key" id="lang" type="button" aria-label="切换到中文"><span aria-hidden="true">文A</span></button>
+  <button class="key" id="mode" type="button" aria-pressed="false" aria-label="Dark mode"><span class="sun" aria-hidden="true">☀</span><span class="moon" aria-hidden="true">☾</span></button>
+</div>
+
+<nav id="marks" aria-label="Landmarks"></nav>
+
+<div id="page">
+
+  <header id="top">
+    <div class="intro">
+      <h1>Zhe Linqi</h1>
+      <p class="en">RL &amp; robotics researcher, founder.</p>
+      <p class="zh" lang="zh-Hans">强化学习与机器人研究者，创业者。</p>
+      <p class="sub en">A small archipelago of things I&rsquo;ve built &mdash; scroll to fly through it.</p>
+      <p class="sub zh" lang="zh-Hans">一座由我做过的事组成的小群岛——向下滚动，飞过去看看。</p>
+    </div>
+    <a id="cue" href="#about" aria-label="Scroll down"><svg viewBox="0 0 11 9" aria-hidden="true"><path fill="currentColor" d="M0 0h2v2H0zM2 2h2v2H2zM4 4h3v2H4zM7 2h2v2H7zM9 0h2v2H9zM4 7h3v2H4z"/></svg></a>
+  </header>
+
+  <main id="desk">
+
+    <section class="win" id="about" aria-labelledby="t-about" data-stop="1">
+      <header class="bar"><h2 id="t-about"><span class="en">About</span><span class="zh" lang="zh-Hans">关于我</span></h2><span class="ix" aria-hidden="true">01</span></header>
+      <div class="body me">
+        <p class="who">Zhe Linqi <small>/linqi</small></p>
+        <p class="role" aria-hidden="true"><span class="sl">//</span> <span id="role">RL researcher</span><i class="caret"></i></p>
+        <p class="vh en">RL researcher, robotics builder, web3 builder, cofounder of Gravit, GRASP Lab at Penn.</p>
+        <p class="vh zh" lang="zh-Hans">强化学习研究者，机器人开发者，web3 建设者，Gravit 联合创始人，宾大 GRASP 实验室。</p>
+        <p class="bio en">RL/robotics researcher turned founder. Sole author of <a href="https://linqizhe07.github.io/forge" target="_blank" rel="noopener">FORGE</a> &mdash; state of the art in fully automated LLM reward search. Now building <b>Gravit</b>: plug-and-play post-training for everyone.</p>
+        <p class="bio zh" lang="zh-Hans">从强化学习与机器人研究走向创业。独立完成 <a href="https://linqizhe07.github.io/forge" target="_blank" rel="noopener">FORGE</a>——全自动 LLM 奖励搜索的当前最优方法。现在在做 <b>Gravit</b>：让后训练即插即用，人人可用。</p>
+        <p class="aff en">University of Pennsylvania · GRASP Lab · Philadelphia, PA</p>
+        <p class="aff zh" lang="zh-Hans">宾夕法尼亚大学 · GRASP 实验室 · 费城</p>
+        <ul class="keys">
+          <li><a class="key" href="mailto:linqizhe@engineering.upenn.edu"><span aria-hidden="true">✉</span> <span class="en">Email</span><span class="zh" lang="zh-Hans">邮件</span></a></li>
+          <li><a class="key" href="https://github.com/linqizhe07" target="_blank" rel="me noopener">GitHub</a></li>
+          <li><a class="key" href="https://www.linkedin.com/in/linqi-zhe-1451b8388/" target="_blank" rel="me noopener">LinkedIn</a></li>
+          <li><a class="key" href="https://linqizhe07.github.io/forge" target="_blank" rel="noopener">FORGE</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="win" id="now" aria-labelledby="t-now" data-stop="2">
+      <header class="bar"><h2 id="t-now"><span class="en">Now</span><span class="zh" lang="zh-Hans">正在做</span></h2><span class="ix" aria-hidden="true">02</span></header>
+      <div class="body">
+        <p class="big"><i class="live" aria-hidden="true"></i><span class="en">Building Gravit</span><span class="zh" lang="zh-Hans">在做 Gravit</span></p>
+        <p class="en">Plug-and-play post-training for everyone. Taking what FORGE proved on benchmarks &mdash; and what Phibotics proved with real clients &mdash; and turning it into a product anyone can use.</p>
+        <p class="zh" lang="zh-Hans">让后训练即插即用、人人可用。把 FORGE 在基准上验证过的、Phibotics 在真实客户那里验证过的东西，做成谁都能用的产品。</p>
+        <fieldset class="effort">
+          <legend><span class="en">Post-training effort</span><span class="zh" lang="zh-Hans">后训练强度</span></legend>
+          <div class="seg">
+            <label><input type="radio" name="effort" value="0"><span><span class="en">prompt-only</span><span class="zh" lang="zh-Hans">仅提示词</span></span></label>
+            <label><input type="radio" name="effort" value="1"><span>SFT</span></label>
+            <label><input type="radio" name="effort" value="2"><span><span class="en">RLHF-style</span><span class="zh" lang="zh-Hans">RLHF 式</span></span></label>
+            <label><input type="radio" name="effort" value="3" checked><span>ultra</span></label>
+          </div>
+          <p class="hint en">faster &larr; &rarr; smarter &nbsp;·&nbsp; it turns the orrery in the sky</p>
+          <p class="hint zh" lang="zh-Hans">更快 &larr; &rarr; 更聪明 &nbsp;·&nbsp; 会带动天上那座星仪</p>
+        </fieldset>
+      </div>
+    </section>
+
+    <section class="win" id="research" aria-labelledby="t-research" data-stop="3">
+      <header class="bar"><h2 id="t-research"><span class="en">Research</span><span class="zh" lang="zh-Hans">研究</span></h2><span class="ix" aria-hidden="true">03</span></header>
+      <div class="split">
+        <ul class="rows">
+          <li>
+            <h3><a href="https://linqizhe07.github.io/forge" target="_blank" rel="noopener">FORGE: Fine-Tuning Over Reward Generations through Evolution</a></h3>
+            <p class="meta en"><span>Publication</span><span>Sole author</span><span>Oct 2025 &ndash; May 2026</span></p>
+            <p class="meta zh" lang="zh-Hans"><span>论文</span><span>独立作者</span><span>2025.10 &ndash; 2026.05</span></p>
+            <p class="en">Rewards and policies evolve together: an LLM writes the reward functions, and pretrained successor features let policies adapt to each new reward instantly &mdash; no retraining.</p>
+            <p class="zh" lang="zh-Hans">奖励与策略协同演化：LLM 负责写奖励函数，预训练的后继特征让策略即时适应每一个新奖励——无需重新训练。</p>
+            <p class="claim en"><b>New state of the art</b> among fully automated LLM reward-search methods on three MuJoCo benchmarks &mdash; beating the prior best at one-tenth the compute.</p>
+            <p class="claim zh" lang="zh-Hans">在三个 MuJoCo 基准上<b>刷新了</b>全自动 LLM 奖励搜索方法的<b>最优水平</b>——算力只用此前最佳方法的十分之一。</p>
+            <p class="go"><a class="key" href="https://linqizhe07.github.io/forge" target="_blank" rel="noopener"><span class="en">project page</span><span class="zh" lang="zh-Hans">项目主页</span> <span aria-hidden="true">↗</span></a> <a class="key" href="https://github.com/linqizhe07/forge" target="_blank" rel="noopener"><span class="en">code</span><span class="zh" lang="zh-Hans">代码</span> <span aria-hidden="true">↗</span></a></p>
+          </li>
+          <li>
+            <h3>Learned Dispatch Policies for Multi-Line Task Scheduling</h3>
+            <p class="meta en"><span>Lead researcher</span><span>Jan &ndash; May 2026</span></p>
+            <p class="meta zh" lang="zh-Hans"><span>主要研究者</span><span>2026.01 &ndash; 05</span></p>
+            <p class="en">Taught three different policies &mdash; supervised, LLM, and RL &mdash; to schedule a multi-robot assembly line, then proved with queueing theory why none of them can beat First-Come-First-Served, and exactly what would change that.</p>
+            <p class="zh" lang="zh-Hans">让监督学习、LLM、强化学习三种策略去调度多机器人装配线，再用排队论证明它们为什么都赢不了“先来先服务”，以及改变什么才能赢。</p>
+          </li>
+        </ul>
+        <div class="scraps" aria-hidden="true">
+          <svg viewBox="0 0 120 84" style="--r:-7deg;--x:-4%"><rect width="120" height="84" fill="#fff"/><path d="M12 8v64h100" fill="none" stroke="#0b2a6f" stroke-width="2"/><path d="M12 62l14-5 12-2 12-3 14-2 16-1 18-1 14 0" fill="none" stroke="#4f96e8" stroke-width="2.5"/><path d="M12 64l10-6 12-4 10-22 12-5 10-5 12-18 12-4 12-8 10-2" fill="none" stroke="#f0522c" stroke-width="3"/></svg>
+          <svg viewBox="0 0 110 96" style="--r:9deg;--x:10%"><rect width="110" height="96" fill="#fff"/><g fill="none" stroke="#0b2a6f" stroke-width="2"><path d="M55 14v16M55 30L28 48M55 30l27 18M28 48L16 72M28 48l14 24M82 48L68 72M82 48l14 24"/></g><g fill="#4f96e8"><rect x="49" y="8" width="12" height="12"/><rect x="22" y="42" width="12" height="12"/><rect x="10" y="66" width="12" height="12"/><rect x="36" y="66" width="12" height="12"/><rect x="62" y="66" width="12" height="12"/></g><g fill="#f0522c"><rect x="76" y="42" width="12" height="12"/><rect x="90" y="66" width="12" height="12"/></g></svg>
+          <svg viewBox="0 0 110 80" style="--r:-4deg;--x:-8%"><rect width="110" height="80" fill="#fff"/><path d="M10 70h92" stroke="#0b2a6f" stroke-width="2"/><rect x="20" y="12" width="26" height="58" fill="#4f96e8"/><rect x="62" y="64" width="26" height="6" fill="#f0522c"/><path d="M62 58h26M75 52v6" stroke="#0b2a6f" stroke-width="2"/></svg>
+          <svg viewBox="0 0 120 70" style="--r:6deg;--x:6%"><rect width="120" height="70" fill="#fff"/><g fill="#4f96e8"><rect x="8" y="12" width="10" height="10"/><rect x="22" y="12" width="10" height="10"/><rect x="36" y="12" width="10" height="10"/><rect x="8" y="30" width="10" height="10"/><rect x="22" y="30" width="10" height="10"/><rect x="8" y="48" width="10" height="10"/></g><g fill="none" stroke="#0b2a6f" stroke-width="2"><path d="M52 17h30M52 35h30M52 53h30M82 17l10 18M82 53l10-18M82 35h10"/><rect x="92" y="25" width="20" height="20"/></g></svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="win" id="experience" aria-labelledby="t-exp" data-stop="4">
+      <header class="bar"><h2 id="t-exp"><span class="en">Experience</span><span class="zh" lang="zh-Hans">经历</span></h2><span class="ix" aria-hidden="true">04</span></header>
+      <ul class="rows">
+        <li>
+          <h3>Phibotics <span class="k en">Jun &ndash; Jul 2026</span><span class="k zh" lang="zh-Hans">2026.06 &ndash; 07</span></h3>
+          <p class="meta en"><span>Reinforcement Learning Intern</span><span>Shenzhen, China</span></p>
+          <p class="meta zh" lang="zh-Hans"><span>强化学习实习生</span><span>深圳</span></p>
+          <p class="en">Took FORGE beyond benchmarks: trained locomotion and whole-body policies for robot makers including <b>Unitree Robotics</b> &mdash; real skills, delivered to real clients.</p>
+          <p class="zh" lang="zh-Hans">把 FORGE 带出基准测试：为包括<b>宇树科技（Unitree）</b>在内的机器人厂商训练行走与全身控制策略——真技能，交付给真客户。</p>
+        </li>
+        <li>
+          <h3>Bounty.ai <a class="k" href="https://bounty.ai" target="_blank" rel="noopener">bounty.ai <span aria-hidden="true">↗</span></a></h3>
+          <p class="meta en"><span>Agent Bounty Marketplace</span></p>
+          <p class="meta zh" lang="zh-Hans"><span>智能体悬赏市场</span></p>
+          <p class="en">Helped ship the launch, then grew the agent-market community from zero &mdash; builders on one side, bounty posters on the other.</p>
+          <p class="zh" lang="zh-Hans">参与产品上线，随后把智能体市场的社区从零做起来——一边是开发者，一边是发布悬赏的人。</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="win" id="education" aria-labelledby="t-edu" data-stop="5">
+      <header class="bar"><h2 id="t-edu"><span class="en">Education</span><span class="zh" lang="zh-Hans">教育</span></h2><span class="ix" aria-hidden="true">05</span></header>
+      <ul class="rows">
+        <li>
+          <h3><span class="en">University of Pennsylvania</span><span class="zh" lang="zh-Hans">宾夕法尼亚大学</span> <span class="k">2025 &ndash; 2027</span></h3>
+          <p class="meta en"><span>M.S.E., Mechanical Engineering &amp; Applied Mechanics</span><span>GPA 3.80 / 4.00</span><span>Philadelphia, PA</span></p>
+          <p class="meta zh" lang="zh-Hans"><span>机械工程与应用力学 工学硕士</span><span>GPA 3.80 / 4.00</span><span>费城</span></p>
+          <p class="en">GRASP Laboratory &mdash; advised by Prof. M. Ani Hsieh and Prof. Dinesh Jayaraman. Expected May 2027.</p>
+          <p class="zh" lang="zh-Hans">GRASP 实验室，导师为 M. Ani Hsieh 教授与 Dinesh Jayaraman 教授。预计 2027 年 5 月毕业。</p>
+        </li>
+        <li>
+          <h3><span class="en">Zhejiang University</span><span class="zh" lang="zh-Hans">浙江大学</span> <span class="k">2021 &ndash; 2025</span></h3>
+          <p class="meta en"><span>B.Eng., Chemical Engineering</span><span>Hangzhou, China</span></p>
+          <p class="meta zh" lang="zh-Hans"><span>化学工程 工学学士</span><span>杭州</span></p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="win" id="skills" aria-labelledby="t-skills" data-stop="6">
+      <header class="bar"><h2 id="t-skills"><span class="en">Skills</span><span class="zh" lang="zh-Hans">技能</span></h2><span class="ix" aria-hidden="true">06</span></header>
+      <dl class="kit">
+        <div><dt><span class="en">Reinforcement Learning</span><span class="zh" lang="zh-Hans">强化学习</span></dt>
+          <dd class="en">SAC · PPO (from scratch) · reward shaping · exploration bonuses (RND)</dd>
+          <dd class="zh" lang="zh-Hans">SAC · PPO（从零实现）· 奖励塑形 · 探索奖励（RND）</dd></div>
+        <div><dt><span class="en">Evolutionary Search</span><span class="zh" lang="zh-Hans">演化搜索</span></dt>
+          <dd class="en">island-based evolution · quality-diversity methods · automated reward design</dd>
+          <dd class="zh" lang="zh-Hans">岛屿式演化 · 质量多样性方法 · 自动奖励设计</dd></div>
+        <div><dt><span class="en">LLM Fine-Tuning &amp; Post-Training</span><span class="zh" lang="zh-Hans">LLM 微调与后训练</span></dt>
+          <dd class="en">SFT of open-weights models · RLHF-style post-training · prompt engineering</dd>
+          <dd class="zh" lang="zh-Hans">开源权重模型的 SFT · RLHF 式后训练 · 提示词工程</dd></div>
+        <div><dt><span class="en">ML Engineering</span><span class="zh" lang="zh-Hans">ML 工程</span></dt>
+          <dd class="en">PyTorch · Stable-Baselines3 · Hydra · Weights &amp; Biases · Docker · multi-GPU training</dd>
+          <dd class="zh" lang="zh-Hans">PyTorch · Stable-Baselines3 · Hydra · Weights &amp; Biases · Docker · 多 GPU 训练</dd></div>
+        <div><dt><span class="en">Simulation &amp; Benchmarks</span><span class="zh" lang="zh-Hans">仿真与基准</span></dt>
+          <dd>MuJoCo · Gymnasium / Gymnasium-Robotics · D4RL</dd></div>
+        <div><dt><span class="en">Programming &amp; Hardware</span><span class="zh" lang="zh-Hans">编程与硬件</span></dt>
+          <dd class="en">Python · C/C++ · MATLAB · ESP32 / ATmega32U4 autonomous vehicle</dd>
+          <dd class="zh" lang="zh-Hans">Python · C/C++ · MATLAB · ESP32 / ATmega32U4 自主小车</dd></div>
+        <div><dt><span class="en">Languages</span><span class="zh" lang="zh-Hans">语言</span></dt>
+          <dd class="en">English (fluent) · Chinese (native)</dd>
+          <dd class="zh" lang="zh-Hans">英语（流利）· 中文（母语）</dd></div>
+      </dl>
+    </section>
+
+    <section class="win" id="life" aria-labelledby="t-life" data-stop="7">
+      <header class="bar"><h2 id="t-life"><span class="en">Beyond the lab</span><span class="zh" lang="zh-Hans">实验室之外</span></h2><span class="ix" aria-hidden="true">07</span></header>
+      <figure class="photo">
+        <div class="print" tabindex="0">
+          <img src="assets/portrait.jpg" width="933" height="1400" loading="lazy" decoding="async" alt="Zhe Linqi in a graduation gown, sitting cross-legged in a bright arched glass corridor">
+        </div>
+        <figcaption>
+          <span class="en">Graduation day, ZJU 2025 · pose credit: Mbapp&eacute;</span>
+          <span class="zh" lang="zh-Hans">毕业那天，浙大 2025 · 姿势版权：姆巴佩</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="win" id="contact" aria-labelledby="t-contact" data-stop="8">
+      <header class="bar"><h2 id="t-contact"><span class="en">Contact</span><span class="zh" lang="zh-Hans">联系</span></h2><span class="ix" aria-hidden="true">08</span></header>
+      <div class="body">
+        <p class="en">Working on robot learning, agent economy, or crypto? I&rsquo;d love to hear from you.</p>
+        <p class="zh" lang="zh-Hans">在做机器人学习、智能体经济或加密相关的事？很想听你聊聊。</p>
+      </div>
+      <ul class="rows links">
+        <li><a href="mailto:linqizhe@engineering.upenn.edu"><span>linqizhe@engineering.upenn.edu</span><span class="k"><span class="en">Penn</span><span class="zh" lang="zh-Hans">学校</span></span></a></li>
+        <li><a href="mailto:linqizhe07@gmail.com"><span>linqizhe07@gmail.com</span><span class="k"><span class="en">personal</span><span class="zh" lang="zh-Hans">个人</span></span></a></li>
+        <li><a href="https://github.com/linqizhe07" target="_blank" rel="me noopener"><span>github.com/linqizhe07</span><span class="k">GitHub <span aria-hidden="true">↗</span></span></a></li>
+        <li><a href="https://www.linkedin.com/in/linqi-zhe-1451b8388/" target="_blank" rel="me noopener"><span>linkedin.com/in/linqi-zhe</span><span class="k">LinkedIn <span aria-hidden="true">↗</span></span></a></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer id="end">
+    <a id="up" href="#top" aria-label="Back to top"><svg viewBox="0 0 11 9" aria-hidden="true"><path fill="currentColor" d="M4 0h3v2H4zM0 7h2v2H0zM2 5h2v2H2zM4 3h3v2H4zM7 5h2v2H7zM9 7h2v2H9z"/></svg></a>
+    <p>&copy; <span id="year">2026</span> Zhe Linqi · <span class="en">Philadelphia, PA</span><span class="zh" lang="zh-Hans">费城</span></p>
+    <p class="fine"><a href="classic/"><span class="en">the earlier, warmer version</span><span class="zh" lang="zh-Hans">之前那版暖色主页</span> <span aria-hidden="true">↗</span></a> · <span class="en">set in Fusion Pixel (OFL)</span><span class="zh" lang="zh-Hans">字体：缝合像素 Fusion Pixel（OFL）</span></p>
+  </footer>
+
+</div>
+
+<div id="vig" aria-hidden="true"></div>
+<div id="grade" aria-hidden="true"></div>
+
+<script src="scene.js" defer></script>
+<script src="main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+/* A void, an archipelago of paper islands drawn in WebGL behind everything, and a desk of small pixel windows over it.
+   Scrolling flies the camera from island to island; the windows only ever move on the compositor. */
+
+/* Fusion Pixel 12px (TakWolf, SIL OFL 1.1), cut down to the characters this page uses: see tools/subset-fonts.py.
+   The Latin cut draws everything; the Chinese cut takes over for Han and full-width punctuation. */
+@font-face{font-family:"Fusion Px";src:url(assets/fonts/fusion-pixel-12px-latin.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"Fusion Px";src:url(assets/fonts/fusion-pixel-12px-zh.woff2) format("woff2");font-display:swap;unicode-range:U+2E80-2FDF,U+3000-303F,U+31C0-31EF,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FE30-FE4F,U+FF00-FFEF}
+
+:root{
+  /* the windows are paper in both themes */
+  --paper:#f2f8ff; --panel:#d3e7fc; --bar:#8ec7fa; --bar-off:#d0e4f8; --line:#4f96e8; --deep:#0b2a6f; --mute:#3d5f9b; --ember:#f0522c;
+  /* what lies behind them: ivory paper by day */
+  --void:#f5f2e9; --fg:#143c96; --vig:rgba(36,62,140,.13);
+  --px:"Fusion Px","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",ui-monospace,monospace;
+  /* The face is drawn on a 12px grid, so type is only ever set at sizes that put each of its pixels on whole device pixels. */
+  --s:12px; --m:18px; --l:24px; --xl:36px;
+  color-scheme:light;
+}
+@media (min-resolution:2.5dppx){:root{--m:16px}}
+@media (max-resolution:1.49dppx){:root{--m:24px}}
+/* Dark when the system is dark, unless the reader chose otherwise (the choice sits on <html data-theme>). */
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--void:#000;--fg:#b5dcff;--vig:rgba(0,10,48,.5);color-scheme:dark}}
+:root[data-theme=dark]{--void:#000;--fg:#b5dcff;--vig:rgba(0,10,48,.5);color-scheme:dark}
+
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--void);-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;min-height:100%;color:var(--deep);font:400 var(--s)/16px var(--px);
+  -webkit-font-smoothing:none;-moz-osx-font-smoothing:grayscale;font-smooth:never;font-synthesis:none;font-variant-ligatures:none;text-rendering:optimizeSpeed;overflow-x:clip}
+a{color:inherit}
+/* the face has one weight: what would be bold is run over with a highlighter instead */
+b,strong{font-weight:400;background:linear-gradient(#bfdcfa,#bfdcfa) 0 85%/100% 40% no-repeat}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* Two languages live in the markup; <html lang> says which one shows. */
+html:not([lang|=zh]) .zh,html[lang|=zh] .en{display:none!important}
+
+/* ---------- the scene ---------- */
+/* lvh: a phone's toolbar sliding away must never resize the canvas. Hidden until it has drawn a few steady frames. */
+#gl{position:fixed;left:0;top:0;width:100%;height:100vh;height:100lvh;display:block;z-index:0;pointer-events:none;opacity:0;transition:opacity 1s ease}
+html.glon #gl{opacity:1}
+/* no WebGL: the void keeps a few fixed stars */
+html.nogl body{background:
+  radial-gradient(1.5px 1.5px at 12% 18%,var(--fg) 50%,transparent 51%),radial-gradient(1.5px 1.5px at 78% 9%,var(--fg) 50%,transparent 51%),
+  radial-gradient(1px 1px at 34% 62%,var(--fg) 50%,transparent 51%),radial-gradient(2px 2px at 88% 44%,var(--fg) 50%,transparent 51%),
+  radial-gradient(1px 1px at 58% 30%,var(--fg) 50%,transparent 51%),radial-gradient(1.5px 1.5px at 6% 80%,var(--fg) 50%,transparent 51%) fixed}
+
+/* Grain, scanlines and a vignette over everything, in plain alpha: one quad each for the compositor. */
+#vig{position:fixed;inset:0;z-index:70;pointer-events:none;background:radial-gradient(ellipse at 50% 46%,transparent 55%,var(--vig) 100%)}
+#grade{position:fixed;left:-160px;top:-160px;width:calc(100vw + 320px);height:calc(100vh + 320px);height:calc(100lvh + 320px);z-index:71;pointer-events:none;
+  background-size:160px 160px;image-rendering:pixelated;will-change:transform;animation:grain .5s steps(1) infinite}
+@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(61px,-37px)}50%{transform:translate(-43px,71px)}75%{transform:translate(29px,47px)}}
+
+/* ---------- things pinned to the screen ---------- */
+.skip{position:fixed;z-index:90;left:8px;top:8px;padding:8px 10px;background:var(--paper);color:var(--deep);border:2px solid var(--deep);transform:translateY(-200%)}
+.skip:focus{transform:none}
+
+/* The name, top left of the first screen (it scrolls away with it): steady, torn across for a moment every few seconds. */
+#home{position:absolute;z-index:60;left:max(12px,env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));display:flex;align-items:center;height:36px;padding:0 10px;
+  font:400 var(--l)/1 var(--px);color:var(--deep);text-decoration:none;background:var(--paper);border:1px solid var(--deep);box-shadow:inset -2px -2px 0 var(--panel),inset 2px 2px 0 #fff,2px 2px 0 var(--deep)}
+#home span{position:relative;display:block}
+#home span::before,#home span::after{content:attr(data-n);position:absolute;left:0;top:0;visibility:hidden}
+#home span::before{color:var(--ember);animation:tear-a 7.5s steps(1) 2s infinite}
+#home span::after{color:var(--line);animation:tear-b 7.5s steps(1) 2s infinite}
+@keyframes tear-a{0%,90.9%{visibility:hidden}91%{visibility:visible;transform:translateX(-3px);clip-path:inset(8% 0 56% 0)}93%{visibility:visible;transform:translateX(2px);clip-path:inset(54% 0 10% 0)}95%,100%{visibility:hidden}}
+@keyframes tear-b{0%,91.9%{visibility:hidden}92%{visibility:visible;transform:translateX(4px);clip-path:inset(38% 0 30% 0)}94%{visibility:visible;transform:translateX(-2px);clip-path:inset(0 0 72% 0)}96%,100%{visibility:hidden}}
+
+/* Keys: flat pixel caps with a bevel, on the windows and in the corner. */
+.key{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:30px;padding:6px 10px;margin:0;font:400 12px/1 var(--px);color:var(--deep);text-decoration:none;white-space:nowrap;
+  background:var(--paper);border:1px solid var(--deep);border-radius:0;box-shadow:inset -2px -2px 0 var(--panel),inset 2px 2px 0 #fff,2px 2px 0 var(--deep);cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none}
+.key:active{transform:translate(2px,2px);box-shadow:inset 2px 2px 0 var(--panel),inset -2px -2px 0 #fff}
+@media (hover:hover){.key:hover{background:var(--panel)}}
+#prefs{position:fixed;z-index:60;top:calc(10px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));display:flex;gap:10px}
+#prefs .key{width:36px;height:36px;padding:0}
+#mode span{font-size:12px}
+/* the key shows where a press leads: the sun when it is dark, the moon when it is light */
+#mode .sun,#mode[aria-pressed=true] .moon{display:none}
+#mode[aria-pressed=true] .sun{display:inline}
+
+/* Labels that hang over the islands, placed every frame with the scene's own camera. Under the windows, over the canvas. */
+#marks{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+#marks a{position:absolute;left:0;top:0;display:flex;align-items:center;height:28px;margin:-14px 0 0 -14px;pointer-events:auto;
+  font:400 12px/1 var(--px);color:var(--fg);text-decoration:none;white-space:nowrap;opacity:.6;will-change:transform;-webkit-tap-highlight-color:transparent}
+#marks a.off{visibility:hidden}
+#marks i{flex:none;display:grid;place-items:center;width:28px;height:28px}
+#marks i::before{content:"";width:7px;height:7px;background:var(--fg);box-shadow:0 0 0 2px var(--void);transform:rotate(45deg)}
+#marks span{padding:4px 7px 4px 5px;background:var(--void);border:1px solid var(--fg);opacity:0;transform:translateX(-4px);transition:opacity .15s steps(2),transform .15s steps(2)}
+#marks a:focus-visible{opacity:1;outline-offset:0}
+#marks a:focus-visible span{opacity:1;transform:none}
+@media (hover:hover){#marks a:hover{opacity:1;z-index:1}#marks a:hover span{opacity:1;transform:none}}
+/* the island of the window in front says what it is */
+#marks a.here{opacity:1}
+#marks a.here i::before{background:var(--ember)}
+#marks a.here span{opacity:1;transform:none}
+
+/* ---------- the page ---------- */
+/* The page lets the pointer through to the labels wherever no window lies. */
+#page{position:relative;z-index:2;pointer-events:none}
+.win,#cue,#end>*{pointer-events:auto}
+
+#top{position:relative;display:flex;align-items:flex-start;min-height:100vh;min-height:100svh;
+  padding:calc(64px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) 0 max(18px,env(safe-area-inset-left,0px))}
+.intro{max-width:520px;color:var(--fg);text-shadow:2px 2px 0 var(--void)}
+.intro h1{margin:0 0 8px;font:400 var(--xl)/1 var(--px)}
+.intro p{margin:0;font-size:var(--m);line-height:1.3333}
+.intro .sub{margin-top:8px;font-size:12px;line-height:16px;text-shadow:1px 1px 0 var(--void)}
+#cue,#up{display:grid;place-items:center;width:56px;height:44px;color:var(--fg);-webkit-tap-highlight-color:transparent}
+#cue svg,#up svg{width:33px;height:27px;shape-rendering:crispEdges;filter:drop-shadow(2px 2px 0 var(--void))}
+#cue{position:absolute;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));margin-left:-28px;animation:nod 1.2s steps(2) infinite;transition:opacity .3s ease,visibility 0s}
+html:not(.top) #cue{opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s}
+@keyframes nod{0%{transform:translateY(0)}50%{transform:translateY(4px)}}
+
+/* The desk: windows dropped down the page by turns, left then right, leaving the middle to the scene. */
+#desk{display:flex;flex-direction:column;max-width:1480px;margin:0 auto;padding:4vh max(16px,env(safe-area-inset-right,0px)) 12vh max(16px,env(safe-area-inset-left,0px))}
+.win{position:relative;display:flex;flex-direction:column;min-width:0;width:min(100%,calc(var(--w,430px)*var(--k,1)));margin-top:var(--mt,14vh);
+  background:rgba(242,248,255,.93);border:2px solid var(--bar-off);outline:1px solid var(--line);color:var(--deep)}
+/* a label on an island leads to its window: it lands a little below the top, clear of the corner keys */
+.win{scroll-margin-top:20vh}
+.win:nth-of-type(odd){align-self:flex-start}
+.win:nth-of-type(even){align-self:flex-end}
+/* The window nearest the middle of the screen is the one in front: full colour in its bar, pinstripes, a hard pixel shadow.
+   The camera is on its island. */
+.win.on,.win.drag{border-color:var(--bar);box-shadow:8px 8px 0 var(--deep)}
+.bar{display:flex;align-items:center;gap:10px;min-height:32px;padding:4px 8px 4px 10px;background:var(--bar-off);-webkit-user-select:none;user-select:none}
+.bar h2{flex:none;margin:0;font:400 var(--l)/1 var(--px);color:var(--mute);white-space:nowrap}
+/* Han fills the whole cell where Latin capitals take three quarters of it: set a size down, on the same line, it reads as large. */
+:root:lang(zh) .bar h2{font-size:var(--m);line-height:var(--l)}
+.bar::after{content:"";flex:1 1 auto;order:1;height:16px;background:repeating-linear-gradient(to bottom,var(--deep) 0 1px,transparent 1px 3px);opacity:0}
+.bar .ix{order:2;flex:none;color:var(--mute)}
+.win.on>.bar,.win.drag>.bar{background:var(--bar)}
+.win.on>.bar h2,.win.drag>.bar h2,.win.on>.bar .ix,.win.drag>.bar .ix{color:var(--deep)}
+.win.on>.bar::after,.win.drag>.bar::after{opacity:.42}
+@media (min-width:900px) and (pointer:fine){.bar{cursor:grab}html.dragging,html.dragging *{cursor:grabbing!important}}
+
+.body{padding:10px 14px 14px}
+.win p{margin:0 0 8px}
+.win p:last-child{margin-bottom:0}
+.win a:not(.key){text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+@media (hover:hover){.win a:not(.key):hover{background:var(--panel)}}
+
+/* About */
+.me .who{margin:0;font-size:var(--l);line-height:1.2}
+.me .who small{margin-left:.5em;font-size:12px;color:var(--mute)}
+.me .role{margin:0 0 8px;font-size:var(--m);line-height:1.3333;color:var(--mute);white-space:nowrap}
+.me .sl{color:var(--ember)}
+.caret{display:inline-block;width:.5em;height:.9em;margin-left:2px;vertical-align:-.1em;background:var(--mute);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.me .bio{font-size:var(--m);line-height:1.3333}
+.me .aff{color:var(--mute)}
+.keys{display:flex;flex-wrap:wrap;gap:10px 12px;list-style:none;margin:12px 0 2px;padding:0}
+
+/* Now */
+.big{display:flex;align-items:center;gap:10px;font-size:var(--l);line-height:1.2}
+.live{flex:none;width:10px;height:10px;background:var(--ember);animation:blink 1.4s steps(1) infinite}
+.effort{margin:12px 0 0;padding:0;border:0;min-width:0}
+.effort legend{padding:0;margin-bottom:6px;color:var(--mute)}
+.seg{display:flex;border:1px solid var(--deep);background:var(--paper);box-shadow:2px 2px 0 var(--deep)}
+.seg label{position:relative;flex:1 1 0;min-width:0;text-align:center}
+.seg input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.seg label>span{display:block;padding:9px 2px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:1px solid var(--deep)}
+.seg label:first-child>span{border-left:0}
+/* a meter: everything up to the chosen stop is lit */
+.seg label:has(~label>input:checked)>span{background:var(--panel)}
+.seg input:checked+span{background:var(--deep);color:#fff}
+.seg input:focus-visible+span{outline:2px solid var(--ember);outline-offset:-3px}
+.hint{margin-top:8px!important;color:var(--mute)}
+
+/* Lists of things: a name, small print, a line or two */
+.rows{list-style:none;margin:0;padding:0}
+.rows>li{padding:10px 14px 12px}
+.rows>li+li{border-top:1px solid var(--panel)}
+.rows h3{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 14px;margin:0 0 2px;font:400 var(--m)/1.3333 var(--px)}
+.rows h3 a{text-decoration:none!important}
+.k{font-size:12px;line-height:16px;color:var(--mute);white-space:nowrap}
+.meta{display:flex;flex-wrap:wrap;gap:0 14px;color:var(--mute)}
+.claim{padding:6px 8px;background:var(--panel)}
+.claim b{background:none;color:var(--deep);text-decoration:underline;text-decoration-color:var(--ember);text-decoration-thickness:2px;text-underline-offset:3px}
+.go{display:flex;flex-wrap:wrap;gap:10px 12px;margin-top:12px!important;padding-bottom:2px}
+.links a{display:flex;justify-content:space-between;align-items:baseline;gap:0 14px;flex-wrap:wrap;margin:-10px -14px -12px;padding:10px 14px 12px;text-decoration:none!important;font-size:var(--m);line-height:1.3333}
+.links a>span:first-child{min-width:0;overflow-wrap:anywhere}
+
+/* Research: the words in two thirds, cuttings from the papers lying loose in the third */
+.split{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.scraps{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:18px 12px 18px 2px;pointer-events:none}
+.scraps svg{display:block;width:88%;height:auto;margin:-9px 0;outline:1px solid var(--line);box-shadow:3px 3px 0 rgba(11,42,111,.22);transform:translateX(var(--x,0)) rotate(var(--r,0deg))}
+
+/* Skills */
+.kit{margin:0;padding:2px 0}
+.kit>div{padding:8px 14px 9px}
+.kit>div+div{border-top:1px solid var(--panel)}
+.kit dt{color:var(--mute)}
+.kit dd{margin:0}
+
+/* Life: a cyanotype of the photograph; its own colours come back under the pointer */
+.photo{margin:0;padding:16px 16px 12px}
+.print{position:relative;isolation:isolate;overflow:hidden;border:6px solid #fff;outline:1px solid var(--line);box-shadow:4px 4px 0 rgba(11,42,111,.25);transform:rotate(-1.4deg);background:#123a9c}
+.print img{display:block;width:100%;height:auto;filter:grayscale(1) contrast(1.2) brightness(1.06);transition:filter .5s ease}
+.print::after{content:"";position:absolute;inset:0;background:#123a9c;mix-blend-mode:screen;transition:opacity .5s ease;pointer-events:none}
+.print:hover img,.print:focus img,.print:active img{filter:none}
+.print:hover::after,.print:focus::after,.print:active::after{opacity:0}
+.photo figcaption{margin-top:14px;color:var(--mute);text-align:center}
+
+/* The foot of the page: the last view, a way back up, small print */
+#end{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;min-height:100vh;min-height:100svh;
+  padding:0 16px calc(20px + env(safe-area-inset-bottom,0px));text-align:center;color:var(--fg);text-shadow:1px 1px 0 var(--void)}
+#end p{margin:0}
+#end .fine{opacity:.8}
+#end a:not(#up){text-underline-offset:3px;text-decoration-thickness:1px}
+
+/* ---------- where each window falls ---------- */
+@media (min-width:1100px){
+  #about{--w:400px;--mt:0px;margin-left:3%}
+  #now{--w:380px;--mt:-20px;margin-right:1%}
+  #research{--w:500px;--mt:30vh}
+  #experience{--w:420px;--mt:-90px;margin-right:4%}
+  #education{--w:420px;--mt:30vh;margin-left:5%}
+  #skills{--w:430px;--mt:-20px}
+  #life{--w:340px;--mt:28vh;margin-left:2%}
+  #contact{--w:390px;--mt:9vh;margin-right:3%}
+}
+/* On a 1x screen the pixel face is set a size up (see --m), so the windows are cut wider to hold it. */
+@media (min-width:1100px) and (max-resolution:1.49dppx){.win{--k:1.15}}
+@media (min-width:1400px) and (max-resolution:1.49dppx){.win{--k:1.3}}
+@media (min-width:700px) and (max-width:1099px){
+  #desk{max-width:860px}
+  .win{--w:64%;--mt:46vh}
+  #about{--mt:0px}
+  #research{--w:76%}
+  #life{--w:46%}
+}
+@media (max-width:699px){
+  /* A phone: a window takes nearly the whole width, so they stand a good half screen apart and each island gets the open stretch above its window. */
+  #desk{padding-top:2vh}
+  .win{--w:94%;--mt:56vh}
+  #about{--mt:0px}
+  #life{--w:80%}
+  #top{padding-top:calc(60px + env(safe-area-inset-top,0px))}
+  .intro h1{font-size:var(--l)}
+  #home{font-size:var(--m)}
+  #prefs .key{width:40px;height:40px}
+  #home{height:40px}
+  .split{grid-template-columns:minmax(0,1fr)}
+  .scraps{flex-direction:row;padding:4px 12px 18px}
+  .scraps svg{width:24%;margin:0 -1%}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  #grade,#cue,.caret,.live,#home span::before,#home span::after{animation:none}
+  #gl,.print img,.print::after{transition:none}
+}
+@media print{
+  #gl,#vig,#grade,#prefs,#marks,#cue,#up,.skip,.caret{display:none!important}
+  html{background:#fff}
+  #home,.intro,#end{color:#000;text-shadow:none;position:static}
+  #top,#end{min-height:0;padding:12px 0}
+  #desk{display:block;padding:0}
+  .win{width:auto!important;margin:0 0 14px!important;box-shadow:none!important;break-inside:avoid;background:#fff}
+}
