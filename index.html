@@ -23,7 +23,7 @@
 /* Light or dark, English or Chinese, decided before anything is painted: the reader's own choice if there is one, else the system's. */
 (function () {
   var r = document.documentElement, t = null, l = null;
-  try { t = localStorage.getItem('theme'); l = localStorage.getItem('lang'); } catch (e) {}
+  try { t = localStorage.getItem('linqi:theme'); l = localStorage.getItem('linqi:lang'); } catch (e) {}
   if (t === 'dark' || t === 'light') r.setAttribute('data-theme', t);
   if (l !== 'en' && l !== 'zh') {
     l = 'en';

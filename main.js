@@ -8,8 +8,9 @@
   const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
   const mq = q => (window.matchMedia ? matchMedia(q) : { matches: false, addEventListener: function () {} });
   const store = {
-    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-    set: function (k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { /* private mode */ } }
+    /* On github.io every project page of the account shares one store, so the keys carry a prefix. */
+    get: function (k) { try { return localStorage.getItem('linqi:' + k); } catch (e) { return null; } },
+    set: function (k, v) { try { if (v === null) localStorage.removeItem('linqi:' + k); else localStorage.setItem('linqi:' + k, v); } catch (e) { /* private mode */ } }
   };
   const mqDark = mq('(prefers-color-scheme: dark)'), mqStill = mq('(prefers-reduced-motion: reduce)');
   /* ?static draws one still frame and runs nothing: for snapshots and print */

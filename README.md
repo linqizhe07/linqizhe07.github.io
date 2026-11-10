@@ -103,6 +103,8 @@ call; whatever moves is re-posed on the CPU into a second small buffer each fram
   `prefers-reduced-motion` stops every animation and the camera no longer flies: it stands at the stop
   nearest the scroll and cuts to the next. Without WebGL the page is the same windows over a plain
   ground. Both languages are in the markup with `lang` set.
+- **Remembered choices** (theme, language) live in `localStorage` under `linqi:`-prefixed keys:
+  on github.io the site shares one origin, and so one store, with every project page of the account.
 - **`?static`** renders one still frame and runs nothing (snapshots, print).
 - **Fonts**: Fusion Pixel by TakWolf, SIL Open Font License 1.1 — licence text in `assets/fonts/OFL.txt`.
 - The CV PDF is intentionally not included (it contains a phone number).
