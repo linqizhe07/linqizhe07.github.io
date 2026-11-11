@@ -68,23 +68,32 @@ One island per thing:
 
 | island | what it is | window |
 | --- | --- | --- |
-| the kiln, centre | FORGE: rewards are written, fired and re-fired; the ring of cubes round its neck is the population | Research |
-| the planet in a sagging net | Gravit: what it pulls, orbits. The meter in the Now window turns it faster | Now |
+| the ironworks, centre | FORGE, as the kind of furnace Pennsylvania was built on (Hopewell, Valley Forge): a stone stack against its bank, charged across a bridge from above, tapped below into a comb of moulds, a tilt hammer working what comes out. Every cast is a generation | Research |
+| the orrery, on a rock above the rest | Gravit: a sun, four arms, a key that winds it. The meter in the Now window says how hard | Now |
 | the lab floor | Phibotics: a humanoid on a treadmill, an arm sorting cubes, a reward curve on the board | Experience |
 | the notice board | Bounty.ai: posted bounties, the agents reading them, a coin | Experience |
-| the clock tower | Philadelphia / Penn, with a GRASP quadrotor overhead | Education |
-| the pagoda and moon bridge | Hangzhou / ZJU | Education |
+| Philadelphia | Penn: City Hall's tower with William Penn on top and its clock lit, College Hall with Franklin in his chair on the green, a brick row, the cracked bell, Boathouse Row outlined in lights along the Schuylkill with a four rowing past, a GRASP quadrotor overhead | Education |
+| Hangzhou | ZJU: West Lake. A pagoda on its hill above rows of tea, the causeway with willow and peach by turns and the moon bridge in it, the three stone lanterns, lotus, a covered boat, the campus lake's black swans, and the academy the university grew from behind its stone gate, 求是 on the board | Education, Skills |
 | the pitch | football, because the lab is not everything | Beyond the lab |
+
+The models are this site's own. The look (flat blue paper, a void, pixel windows) follows the reference; nothing in the
+scene is copied from it. The two characters on the gate are the page's pixel font's own 12 by 12 bitmaps, pasted into
+`scene.js` as bit strings (`QIUSHI`); FORGE on the stack is five hand-drawn 5 by 7 letters.
 
 Everything is built in code in `scene.js` from boxes, lofted rings and flat cut-outs; nothing is loaded.
 Each face gets one of four flat tones from a fixed light, as a palette index, so a theme is 24 colours
 in a uniform and nothing is rebuilt when it changes. The static world is one vertex buffer and one draw
 call; whatever moves is re-posed on the CPU into a second small buffer each frame.
 
-- **Camera**: `STOPS` in `scene.js` is one position/target/field-of-view per window, joined by a
-  Catmull-Rom curve. `main.js` maps scroll positions to stops (`layout()`): on wide screens a stop is
-  reached when its window is centred; on narrow ones, in the open stretch above the window, since the
-  window then covers the view.
+- **Camera**: `STOPS` in `scene.js` is a position/target/field-of-view per window, joined by a
+  Catmull-Rom curve; a window's `data-stop` in `index.html` names its stop. Stop 7 belongs to no
+  window: it is a waypoint, so the flight from Hangzhou to the pitch goes over the ironworks and not
+  through it. `main.js` maps scroll positions to stops (`layout()`): on wide screens a stop is reached
+  when its window is centred; on narrow ones, in the open stretch above the window, since the window
+  then covers the view.
+- **Checking a stop while editing**: the page lets the camera down onto the first view for a couple of
+  seconds after it loads, so a screenshot taken early shows it too high and too far.
+  `Scene.dbg.cam(...)` with a stop's own numbers, or `Scene.setMotion(false)`, shows it exactly.
 - **Looking around while editing**, from the console: `Scene.dbg.cam([x,y,z],[x,y,z],fov)` places the
   camera, `Scene.dbg.stop(3)` goes to a stop, `Scene.dbg.time(8)` freezes the clock, `Scene.dbg.draw()`
   draws one frame now, `Scene.dbg.free()` hands control back to the scroll.

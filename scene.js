@@ -71,19 +71,19 @@
 
   /* ---------- colour ----------
      Every vertex carries an index into this table, so a theme is 24 uniforms and nothing is rebuilt.
-     0-3 paper · 4-7 blue · 8-11 stone · 12 ink · 13-15 ember · 16 glow · 17 white · 18-19 line · 20 water · 21 turf */
+     0-3 paper · 4-7 blue · 8-11 stone · 12 ink · 13-15 ember · 16 glow · 17 white · 18-19 line · 20 water · 21 turf · 22-23 brick */
   const hex = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
   const THEMES = {
     dark: {
       pal: ['#f7fbff', '#c3e1fa', '#6aa8ee', '#2e66d4', '#86c2f8', '#3a7fe8', '#1b4dbf', '#0f2f8a',
         '#dbe8f5', '#a5c6e8', '#5b8fd8', '#2852b0', '#0a1f5e', '#ff9468', '#f55a30', '#bb341e',
-        '#ffe6b8', '#ffffff', '#b5dcff', '#5a95e8', '#1d55c8', '#2f6fdc', '#000000', '#000000'],
+        '#ffe6b8', '#ffffff', '#b5dcff', '#5a95e8', '#1d55c8', '#2f6fdc', '#ee8163', '#cf5238'],
       sky: '#000000', star: '#dbeeff', starA: 0.95, mote: '#cfe8ff', moteA: 0.8, grain: 0.035, fog: 1 / 430
     },
     light: {
       pal: ['#e3effc', '#b4d6f7', '#6aa8ee', '#2e66d4', '#86c2f8', '#3a7fe8', '#1b4dbf', '#0f2f8a',
         '#cfe0f3', '#a0c2e6', '#5b8fd8', '#2852b0', '#0a1f5e', '#ff8a5c', '#f0522c', '#bb341e',
-        '#ffd9a0', '#ffffff', '#5a95e8', '#2e66d4', '#1d55c8', '#2f6fdc', '#000000', '#000000'],
+        '#ffd9a0', '#ffffff', '#5a95e8', '#2e66d4', '#1d55c8', '#2f6fdc', '#e8775a', '#c8492f'],
       sky: '#f5f2e9', star: '#3a7fe8', starA: 0.4, mote: '#5a95e8', moteA: 0.55, grain: 0.022, fog: 1 / 460
     }
   };
@@ -97,9 +97,10 @@
     paper: mat([0, 1, 2, 3]), blue: mat([4, 5, 6, 7]), roof: mat([5, 6, 7, 7]), iron: mat([6, 7, 12, 12]),
     stone: mat([8, 9, 10, 11]), ink: mat([12, 12, 12, 12]), ember: mat([13, 14, 15, 15]),
     glow: mat([16, 16, 16, 16], 1), white: mat([17, 17, 17, 17], 1), line: mat([18, 18, 19, 19]),
-    water: mat([20, 20, 20, 20]), turf: mat([21, 21, 21, 21]),
-    /* the same paper and thread, but out past the fog: the planet is this sky's sun */
-    paperF: mat([0, 1, 2, 3], 1), blueF: mat([4, 5, 6, 7], 1), lineF: mat([19, 19, 19, 19], 1), emberF: mat([13, 14, 15, 15], 1)
+    water: mat([20, 20, 20, 20]), turf: mat([21, 21, 21, 21]), brick: mat([22, 23, 15, 15]),
+    /* the same paper and thread, but out past the fog, for the orrery: it is this sky's sun */
+    paperF: mat([0, 1, 2, 3], 1), blueF: mat([4, 5, 6, 7], 1), lineF: mat([19, 19, 19, 19], 1), emberF: mat([13, 14, 15, 15], 1),
+    sunF: mat([16, 13, 14, 15], 1)
   };
 
   /* ---------- the builder: triangles with a tone ---------- */
@@ -299,14 +300,15 @@
     forge: { p: [0, 0, 0], R: 27, d: 30, seed: 7, bob: 1, ry: 0 },
     robot: { p: [50, -6, -12], R: 19, d: 21, seed: 19, bob: 2, ry: -0.69 },
     bounty: { p: [74, 2, -46], R: 12, d: 15, seed: 31, bob: 3, ry: -0.65 },
-    hz: { p: [-30, 8, -64], R: 18, d: 22, seed: 43, bob: 4, ry: 0.2 },
-    phl: { p: [-40, -6, -6], R: 15, d: 18, seed: 59, bob: 5, ry: 0.63 },
-    pitch: { p: [40, -12, 34], R: 14, d: 14, seed: 71, bob: 6, ry: -0.57 }
+    hz: { p: [-44, 7, -58], R: 22, d: 24, seed: 43, bob: 4, ry: 0.2 },
+    phl: { p: [-53, -5, 0], R: 21, d: 20, seed: 59, bob: 5, ry: 0.63 },
+    pitch: { p: [40, -12, 34], R: 14, d: 14, seed: 71, bob: 6, ry: -0.57 },
+    gravit: { p: [40, 48, -26], R: 6.5, d: 12, seed: 83, bob: 7, ry: 0.3 }
   };
   const ISLM = {};
   for (const k in ISL) ISLM[k] = MM(mT(ISL[k].p[0], ISL[k].p[1], ISL[k].p[2]), mRY(ISL[k].ry));
-  const ORR = [46, 80, -38];          /* the planet: Gravit */
-  const TH = 0.4;                     /* which way the kiln's mouth looks */
+  const TH = 0.4;                     /* which way the furnace is tapped */
+  const FM = mmul(ISLM.forge, mRY(TH)), GM = ISLM.gravit;   /* the ironworks' own frame, and the orrery's */
   const anim = [];                    /* things that move: fn(t, emit) */
 
   /* A floating rock: a bright rim, then facets closing to a point underneath. */
@@ -327,68 +329,167 @@
       tri(belly[i], belly[k], tip, MAT.stone, { c: c, bias: 1 });
     }
   }
+  function at(x, y, z, fn, ry) { withM(ry ? MM(mT(x, y, z), mRY(ry)) : mT(x, y, z), fn); }
+  const sq = h => [[-h, -h], [h, -h], [h, h], [-h, h]];
+  const rect2 = (w, h) => [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]];
   function lantern(x, z) {
     tube([x, 0, z], [x, 3.8, z], 0.12, MAT.paper, 4);
     bx(x, 3.8, z, 0.7, 0.7, 0.7, MAT.glow); hip(x, z, 4.5, 5.0, 1.2, 1.2, 0.2, 0.2, MAT.blue);
   }
-  function cypress(x, z, h) { tube([x, 0, z], [x, h * 0.2, z], 0.18, MAT.paper, 4); loft([[h * 0.16, h * 0.17], [h * 0.5, h * 0.13], [h, 0.02]], 6, MAT.blue, { cx: x, cz: z, cap: 'none', stripe: 1 }); }
-  function willow(x, z, h) { tube([x, 0, z], [x, h * 0.62, z], 0.2, MAT.paper, 4); ico([x, h * 0.72, z], h * 0.36, MAT.blue, 1, { sy: 0.8 }); }
+  /* trees: a dawn redwood, a weeping willow, a peach in blossom, a broad crown in autumn, bamboo */
+  function redwood(x, z, h) { tube([x, 0, z], [x, h * 0.2, z], 0.18, MAT.paper, 4); loft([[h * 0.16, h * 0.17], [h * 0.5, h * 0.13], [h, 0.02]], 6, MAT.blue, { cx: x, cz: z, cap: 'none', stripe: 1 }); }
+  function willow(x, z, h, turn) {
+    tube([x, 0, z], [x, h * 0.66, z], 0.2, MAT.paper, 4);
+    loft([[h * 0.62, h * 0.3], [h * 0.84, h * 0.26], [h, h * 0.08]], 9, MAT.blue, { cx: x, cz: z, rot: turn });
+    for (let i = 0; i < 9; i++) {
+      const a = turn + (i + 0.5) / 9 * TAU, c = Math.cos(a), s = Math.sin(a), r = h * 0.29, w = h * 0.075, L = h * (0.36 + ((i * 5) % 3) * 0.08), y = h * 0.64;
+      quad([x + c * r - s * w, y, z + s * r + c * w], [x + c * r + s * w, y, z + s * r - c * w],
+        [x + c * r * 1.14 + s * w * 0.3, y - L, z + s * r * 1.14 - c * w * 0.3], [x + c * r * 1.14 - s * w * 0.3, y - L, z + s * r * 1.14 + c * w * 0.3], (i & 1) ? MAT.roof : MAT.blue, { c: [x, y, z] });
+    }
+  }
+  function peach(x, z, h) {
+    tube([x, 0, z], [x, h * 0.5, z], 0.13, MAT.paper, 4);
+    ico([x - h * 0.1, h * 0.68, z], h * 0.27, MAT.brick, 0, { sy: 0.85 }); ico([x + h * 0.14, h * 0.8, z + h * 0.05], h * 0.21, MAT.brick, 0, { sy: 0.85 });
+  }
+  function maple(x, z, h, m) {
+    tube([x, 0, z], [x, h * 0.55, z], 0.2, MAT.paper, 4);
+    ico([x, h * 0.74, z], h * 0.3, m, 0, { sy: 0.86 }); ico([x - h * 0.2, h * 0.6, z + h * 0.07], h * 0.21, m, 0); ico([x + h * 0.2, h * 0.63, z - h * 0.06], h * 0.23, m, 0);
+  }
+  function bamboo(x, z, n, seed) {
+    const rnd = rng(seed);
+    for (let i = 0; i < n; i++) {
+      const x0 = x + (rnd() - 0.5) * 2.6, z0 = z + (rnd() - 0.5) * 2.6, h = 5 + rnd() * 3, lx = (rnd() - 0.5) * 1.3, lz = (rnd() - 0.5) * 1.3;
+      tube([x0, 0, z0], [x0 + lx, h, z0 + lz], 0.09, MAT.paper, 3);
+      for (let k = 0; k < 3; k++) {
+        const t = 0.55 + k * 0.17, px = x0 + lx * t, py = h * t, pz = z0 + lz * t, a = rnd() * TAU, L = 1.2 + rnd() * 0.7;
+        tri([px, py, pz], [px + Math.cos(a) * L, py + 0.55, pz + Math.sin(a) * L], [px + Math.cos(a + 0.55) * L * 0.8, py - 0.2, pz + Math.sin(a + 0.55) * L * 0.8], MAT.blue, { n: [0, 1, 0] });
+      }
+    }
+  }
 
-  const BODY = [[2, 8.3], [4.6, 8.9], [8.4, 8.8], [12, 8.0], [15.4, 6.5], [18.4, 5.1], [21.4, 4.3], [25, 3.9], [33, 3.55], [39.4, 3.55], [40.5, 4.5], [41.8, 4.5]];
-  function bodyR(y) { for (let i = 0; i < BODY.length - 1; i++) if (y <= BODY[i + 1][0]) { const a = BODY[i], b = BODY[i + 1]; return a[1] + (b[1] - a[1]) * (y - a[0]) / (b[0] - a[0]); } return 4.5; }
-
-  /* FORGE: a bottle kiln. Rewards are written, fired and re-fired here; the ring round its neck is the population. */
+  /* FORGE: an ironworks of the kind Pennsylvania was built on (Hopewell, Valley Forge). A stone furnace stands against
+     its bank and is charged from above, across a bridge; it is tapped below into a bed of moulds, and a tilt hammer
+     works what comes out. Rewards go in at the top; every cast is a generation. */
+  function crag(cx, cz, R, H, seed) {
+    const n = 9, rnd = rng(seed), lv = [[0, 1], [0.34, 0.9], [0.7, 0.7], [1, 0.52]], rows = [];
+    for (let j = 0; j < lv.length; j++) {
+      const row = [];
+      for (let i = 0; i < n; i++) {
+        const a = i / n * TAU + (rnd() - 0.5) * 0.25, r = R * lv[j][1] * (0.88 + rnd() * 0.24);
+        row.push([cx + Math.cos(a) * r, H * lv[j][0] + (j === 1 || j === 2 ? (rnd() - 0.5) * H * 0.08 : 0), cz + Math.sin(a) * r]);
+      }
+      rows.push(row);
+    }
+    const c = [cx, H * 0.4, cz];
+    for (let j = 0; j < lv.length - 1; j++) for (let i = 0; i < n; i++) {
+      const k = (i + 1) % n;
+      tri(rows[j][i], rows[j][k], rows[j + 1][k], MAT.stone, { c: c, bias: j === 0 ? 1 : 0 });
+      tri(rows[j][i], rows[j + 1][k], rows[j + 1][i], MAT.stone, { c: c, bias: (i & 1) ? 1 : 0 });
+    }
+    fan(rows[lv.length - 1], [cx, H, cz], MAT.paper, { n: [0, 1, 0] });
+  }
   function forgeIsle() {
-    flat(0, 0.05, 0, 17, 17, 22, MAT.paper);
-    loft([[0, 13.2], [1, 12.6]], 10, MAT.stone, { top: MAT.paper, rot: 0.31 });
-    loft([[1, 10.9], [2, 10.5]], 10, MAT.stone, { top: MAT.paper, rot: 0.31 });
-    loft(BODY, 20, MAT.paper, { stripe: 1, cap: 'none' });
-    [[8.4, 9.05], [15.2, 6.9], [21.2, 4.6], [29.7, 3.98], [36.4, 3.82]].forEach(h => loft([[h[0], h[1]], [h[0] + 0.55, h[1]]], 20, MAT.blue, { cap: 'both' }));
-    flat(0, 41.82, 0, 4.5, 4.5, 20, MAT.paper); flat(0, 41.88, 0, 3.6, 3.6, 20, MAT.ink); flat(0, 41.94, 0, 2.5, 2.5, 12, MAT.glow);
-    /* the fire shows through slits up the neck */
-    [[3, 25.6], [5, 27.4], [3, 31.2], [5, 33.2], [3, 37.4]].forEach(s => facet(20, 0, s[0], bodyR(s[1]), s[1], bodyR(s[1] + 1.3), s[1] + 1.3, 0.42, MAT.glow));
-    /* the mouth */
-    withM(MM(mRY(TH), mT(0, 2, 7.4)), function () {
-      house(0, 0, 1.4, 6.8, 6.6, 4.0, 2.6, 'z', MAT.paper, MAT.roof);
-      decal([0, 7.5, 3.47], [0, 0, 1], ngon(0.62, 8), MAT.glow);
-      decal([0, 0.3, 3.47], [0, 0, 1], archPts(4.7, 3.0, 12), MAT.ember, 2);
-      decal([0, 0.3, 3.53], [0, 0, 1], archPts(3.6, 2.7, 12), MAT.ember, 0);
-      decal([0, 0.3, 3.59], [0, 0, 1], archPts(2.2, 2.1, 10), MAT.glow);
-      bx(0, -1, 4.6, 7.8, 1, 2.4, MAT.stone, { top: MAT.paper });
-      bx(0, -2, 6.8, 8.8, 1, 2.4, MAT.stone, { top: MAT.paper });
+    flat(0, 0.05, 2, 20.5, 19.5, 24, MAT.paper);
+    withM(mRY(TH), function () {
+      crag(0, -17.5, 10, 23.4, 11);
+      /* the stack: battered stone, a brick mouth */
+      bx(0, 0, 0, 21, 1, 21, MAT.stone, { top: MAT.paper });
+      hip(0, 0, 1, 21, 17, 17, 10.6, 10.6, MAT.stone);
+      bx(0, 21, 0, 11.8, 0.7, 11.8, MAT.paper);
+      bx(0, 21.7, 0, 8.6, 2.6, 8.6, MAT.brick);
+      wall('+y', 24.3, -3.3, 3.3, -3.3, 3.3, MAT.ink); wall('+y', 24.36, -2.3, 2.3, -2.3, 2.3, MAT.glow);
+      const faceN = [[0, 0.158, 0.987], [0.987, 0.158, 0], [0, 0.158, -0.987], [-0.987, 0.158, 0]];
+      const onStack = function (s, a, y, pts, m, bias, lift) {
+        const r = 8.5 - (y - 1) * 0.16 + (lift || 0.07);
+        decal(s === 0 ? [a, y, r] : s === 1 ? [r, y, -a] : s === 2 ? [-a, y, -r] : [-r, y, a], faceN[s], pts, m, bias);
+      };
+      const rb = rng(29);                 /* a stone here and there, a tone down: it is laid, not poured */
+      for (let s = 0; s < 4; s++) for (let i = 0; i < 10; i++) {
+        const y = 2.6 + rb() * 17, half = 8.5 - (y - 1) * 0.16 - 1.5;
+        onStack(s, (rb() * 2 - 1) * half, y, rect2(1.3 + rb() * 1.4, 0.55 + rb() * 0.35), MAT.stone, 1, 0.04);
+      }
+      for (let s = 0; s < 4; s++) [-2.5, 0, 2.5].forEach(a => onStack(s, a, 17.6, sq(0.42), MAT.ink));
+      bx(0, 14.6, 0, 13.1, 0.45, 13.1, MAT.paper);
+      /* its name, cast in iron and set in the stack */
+      const FONT = { F: '11111100001000011110100001000010000', O: '01110100011000110001100011000101110', R: '11110100011000111110101001001010001', G: '01111100001000010111100011000101111', E: '11111100001000011110100001000011111' };
+      onStack(0, 0, 12.3, rect2(5.9, 1.9), MAT.ink);
+      'FORGE'.split('').forEach(function (ch, g) {
+        const bits = FONT[ch], s = 0.17;
+        for (let r = 0; r < 7; r++) for (let c = 0; c < 5; c++) if (bits.charAt(r * 5 + c) === '1')
+          onStack(0, -2.465 + g * 1.02 + (c + 0.5) * s, 12.3 + 0.595 - (r + 0.5) * s, sq(s / 2), MAT.glow, 0, 0.11);
+      });
+      /* the charging floor round the mouth, and its rail */
+      bx(0, 21.7, 0, 13.6, 0.3, 13.6, MAT.paper);
+      for (let i = 0; i < 4; i++) withM(mRY(i * TAU / 4), function () {
+        tube([-6.6, 23.0, 6.6], [6.6, 23.0, 6.6], 0.07, MAT.blue, 3);
+        [-6.6, -3.3, 0, 3.3].forEach(x => bx(x, 22.0, 6.6, 0.16, 1.0, 0.16, MAT.blue));
+      });
+      /* the casting arch, and the two the blast comes in by */
+      bx(0, 1, 8.9, 8.6, 8.4, 1.8, MAT.stone, { top: MAT.paper });
+      decal([0, 1.25, 9.87], [0, 0, 1], archPts(5.8, 3.3, 12), MAT.ink);
+      decal([0, 1.25, 9.92], [0, 0, 1], archPts(4.4, 2.6, 12), MAT.ember, 1);
+      decal([0, 1.25, 9.97], [0, 0, 1], archPts(3.0, 2.0, 10), MAT.ember);
+      decal([0, 1.25, 10.02], [0, 0, 1], archPts(1.7, 1.3, 8), MAT.glow);
+      [-1, 1].forEach(function (d) {
+        bx(d * 8.9, 1, 0, 1.8, 6.6, 6.6, MAT.stone, { top: MAT.paper });
+        decal([d * 9.87, 1.25, 0], [d, 0, 0], archPts(3.6, 2.2, 10), MAT.ink);
+        decal([d * 9.92, 1.25, 0], [d, 0, 0], archPts(2.0, 1.4, 8), MAT.ember, 1);
+      });
+      /* the blowing tubs */
+      bx(14.2, 0, -3.2, 3.4, 2.2, 3.0, MAT.blue, { top: MAT.paper });
+      loft([[2.2, 0.9], [4.0, 0.9]], 8, MAT.paper, { cx: 13.4, cz: -3.2 }); loft([[2.2, 0.9], [3.3, 0.9]], 8, MAT.paper, { cx: 15.1, cz: -3.2 });
+      tube([12.4, 1.5, -3.0], [10.0, 2.3, -0.8], 0.3, MAT.iron, 5);
+      /* the cast house: a roof over the tap, open to the bed of moulds; one runner and a comb of pigs */
+      bx(0, 0, 16.2, 11.6, 1, 12.8, MAT.stone, { top: MAT.paper });
+      [[-5.6, 10.9], [5.6, 10.9], [-5.6, 16.0], [5.6, 16.0]].forEach(q => bx(q[0], 1, q[1], 0.5, 5.4, 0.5, MAT.blue));
+      [-1, 1].forEach(function (d) {
+        quad([d * 6.9, 6.2, 9.9], [d * 6.9, 6.2, 16.9], [0, 9.5, 16.9], [0, 9.5, 9.9], MAT.roof, { n: [0, 1, 0] });
+        quad([d * 6.7, 6.1, 9.95], [d * 6.7, 6.1, 16.85], [0, 9.32, 16.85], [0, 9.32, 9.95], MAT.roof, { n: [0, -1, 0], bias: 2 });
+      });
+      bx(0, 6.0, 16.6, 12.6, 0.4, 0.4, MAT.paper); bx(0, 6.4, 16.6, 0.4, 2.7, 0.4, MAT.paper);
+      wall('+y', 1, -0.3, 0.3, 10.0, 21.7, MAT.ember);
+      for (let k = 0; k < 7; k++) { const z = 14.9 + k * 1.05; wall('+y', 1, 0.3, 3.9, z - 0.24, z + 0.24, MAT.iron); wall('+y', 1, -3.9, -0.3, z - 0.24, z + 0.24, MAT.iron); }
+      /* the bank: a charcoal barn, the charge stacked by it, and the bridge the charge crosses */
+      at(0, 23.4, -18.4, function () {
+        house(0, 0, 0, 5.6, 2.6, 4.2, 1.9, 'x', MAT.paper, MAT.roof);
+        wall('+z', 2.1, -0.8, 0.8, 0, 1.9, MAT.ink);
+      });
+      bx(3.0, 23.4, -14.7, 1.0, 1.0, 1.0, MAT.paper); bx(3.2, 24.4, -14.9, 0.8, 0.8, 0.8, MAT.blue); bx(-2.9, 23.4, -14.5, 1.1, 1.1, 1.1, MAT.blue);
+      quad([-1.3, 23.5, -12.8], [1.3, 23.5, -12.8], [1.3, 24.45, -4.5], [-1.3, 24.45, -4.5], MAT.paper, { n: [0, 1, 0] });
+      quad([-1.3, 23.3, -12.8], [1.3, 23.3, -12.8], [1.3, 24.25, -4.5], [-1.3, 24.25, -4.5], MAT.stone, { n: [0, -1, 0], bias: 1 });
+      [-1.3, 1.3].forEach(function (x) {
+        tube([x, 24.4, -12.8], [x, 25.35, -4.5], 0.07, MAT.blue, 3);
+        for (let i = 0; i <= 4; i++) { const t = i / 4; tube([x, 23.5 + t * 0.95, -12.8 + t * 8.3], [x, 24.4 + t * 0.95, -12.8 + t * 8.3], 0.07, MAT.blue, 3); }
+        tube([x * 0.85, 23.9, -8.4], [x * 1.9, 19.0, -11.6], 0.15, MAT.blue, 4);
+      });
+      /* the tilt hammer's bed: the anvil, the piece in work, the posts the helve and the cam turn on */
+      at(11.8, 0, 13.4, function () {
+        bx(-3.6, 0, 0, 2.8, 1.4, 2.8, MAT.stone, { top: MAT.paper });
+        bx(-3.6, 1.4, 0, 2.0, 0.9, 1.5, MAT.iron); bx(-3.6, 2.3, 0, 1.6, 0.22, 0.42, MAT.glow);
+        [-1.05, 1.05].forEach(z => bx(1.2, 0, z, 0.5, 4.9, 0.5, MAT.blue));
+        [-1.5, 1.5].forEach(z => bx(5.7, 0, z, 0.5, 6.4, 0.5, MAT.blue));
+        tube([5.7, 5.9, -1.9], [5.7, 5.9, 2.9], 0.14, MAT.iron, 5);
+      });
+      /* quench trough, bar iron, ore */
+      at(11.6, 0, 19.6, function () { bx(0, 0, 0, 4.4, 1.2, 1.9, MAT.blue); wall('+y', 1.2, -1.9, 1.9, -0.65, 0.65, MAT.water); }, 0.3);
+      at(-9.6, 0, 17.2, function () {
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3 - i; j++) bx(-1.1 + j * 1.1 + i * 0.55, i * 0.5, 0, 0.9, 0.5, 3.6, (i + j) % 2 ? MAT.blue : MAT.paper);
+      }, -0.25);
+      const rnd = rng(5);
+      for (let i = 0; i < 7; i++) ico([-13.4 + rnd() * 2.6, 0.4 + (i > 4 ? 0.7 : 0), 9.2 + rnd() * 2.2], 0.55 + rnd() * 0.3, MAT.iron, 0);
+      /* the office, the store */
+      at(-16.4, 0, 2.2, function () {
+        house(0, 0, 0, 6.2, 3.8, 5.0, 2.4, 'x', MAT.paper, MAT.roof);
+        wall('+z', 2.5, -0.8, 0.8, 0, 2.5, MAT.ink); wall('+z', 2.5, 1.6, 2.6, 1.4, 2.5, MAT.glow); wall('+z', 2.5, -2.6, -1.6, 1.4, 2.5, MAT.ink);
+        bx(1.8, 4.4, -0.9, 0.9, 2.5, 0.9, MAT.brick);
+      }, 0.3);
+      at(17, 0, -9.6, function () {
+        house(0, 0, 0, 5.2, 3.3, 6.6, 2.1, 'z', MAT.paper, MAT.roof);
+        wall('+z', 3.3, -0.7, 0.7, 0, 2.2, MAT.ink); grid('+x', 2.6, -2.4, 2.4, 1.2, 2.5, 3, 1, 0.42, 1, MAT.ink);
+      }, -0.5);
+      redwood(-11, -11.5, 8); redwood(11.8, -14.2, 9.5); redwood(-14, -6.2, 6.5); redwood(7.6, -21.4, 7);
+      lantern(-7.6, 20.6); lantern(7.6, 21.4); lantern(-20.5, -3); lantern(21.5, 4.5);
     });
-    /* anvil, the piece in work, a hammer */
-    withM(MM(mRY(TH + 0.66), mT(0, 0, 18.5), mRY(-0.55)), function () {
-      bx(0, 0, 0, 4.0, 1.5, 2.7, MAT.stone, { top: MAT.paper });
-      bx(0, 1.5, 0, 2.3, 0.5, 1.5, MAT.iron); bx(0, 2.0, 0, 1.2, 0.9, 1.0, MAT.iron); bx(-0.2, 2.9, 0, 3.2, 0.8, 1.5, MAT.iron);
-      const b = [[1.4, 2.95, -0.6], [1.4, 3.7, -0.6], [1.4, 3.7, 0.6], [1.4, 2.95, 0.6]], tip = [3.1, 3.55, 0], c = [1.6, 3.3, 0];
-      for (let i = 0; i < 4; i++) tri(b[i], b[(i + 1) % 4], tip, MAT.iron, { c: c });
-      bx(-0.1, 3.7, 0, 1.9, 0.24, 0.44, MAT.glow);
-      tube([-2.9, 0, 1.3], [-1.9, 2.5, 0.9], 0.12, MAT.paper, 4);
-      withM(MM(mT(-1.84, 2.7, 0.86), mRZ(-0.38)), function () { bx(0, -0.3, 0, 1.1, 0.62, 0.62, MAT.iron, { bottom: 1 }); });
-    });
-    /* quench trough, ingots, coal */
-    withM(MM(mRY(TH - 0.75), mT(0, 0, 17.5), mRY(0.4)), function () {
-      bx(0, 0, 0, 4.6, 1.2, 2.0, MAT.blue); wall('+y', 1.2, -2.0, 2.0, -0.7, 0.7, MAT.water);
-      bx(4.4, 0, 0.4, 1.8, 0.5, 0.8, MAT.paper); bx(4.5, 0.5, 0.3, 1.8, 0.5, 0.8, MAT.blue); bx(4.3, 1.0, 0.45, 1.8, 0.5, 0.8, MAT.paper);
-    });
-    const rnd = rng(5);
-    for (let i = 0; i < 7; i++) ico([-6.5 + rnd() * 2.6, 0.4 + (i > 4 ? 0.7 : 0), 15.5 + rnd() * 2.2], 0.55 + rnd() * 0.3, MAT.iron, 0);
-    /* sheds */
-    withM(MM(mT(-17.5, 0, 3.5), mRY(0.35)), function () {
-      house(0, 0, 0, 6.6, 4.0, 5.2, 2.5, 'x', MAT.paper, MAT.roof);
-      wall('+z', 2.6, -0.8, 0.8, 0, 2.6, MAT.ink); wall('+z', 2.6, 1.7, 2.7, 1.5, 2.6, MAT.ink); wall('+z', 2.6, -2.7, -1.7, 1.5, 2.6, MAT.ink);
-      bx(1.9, 4.6, -0.9, 0.9, 2.6, 0.9, MAT.blue);
-    });
-    withM(MM(mT(15.5, 0, -12.5), mRY(-0.5)), function () {
-      house(0, 0, 0, 5.4, 3.4, 7, 2.2, 'z', MAT.paper, MAT.roof);
-      wall('+z', 3.5, -0.7, 0.7, 0, 2.3, MAT.ink); grid('+x', 2.7, -2.6, 2.6, 1.2, 2.6, 3, 1, 0.42, 1, MAT.ink);
-    });
-    withM(MM(mT(-8, 0, -17), mRY(0.2)), function () { house(0, 0, 0, 4.4, 2.8, 4, 1.8, 'x', MAT.blue, MAT.paper); wall('+z', 2.0, -0.6, 0.6, 0, 2.0, MAT.ink); });
-    lantern(Math.sin(TH - 0.42) * 15.6, Math.cos(TH - 0.42) * 15.6); lantern(Math.sin(TH + 0.42) * 15.6, Math.cos(TH + 0.42) * 15.6);
-    lantern(-21.5, -6); lantern(21, 6.5);
-    /* the population's orbit */
-    withM(MM(mT(0, 29.3, 0), mRX(0.2), mRZ(0.1)), function () { hoop(9, 0.08, 60, MAT.line, 3); });
   }
 
   /* ROBOTS: a lab floor. A humanoid walks a treadmill (locomotion policies), an arm sorts cubes (GRASP), a curve climbs on the board. */
@@ -450,7 +551,8 @@
     bot(-3.2, 2.2, Math.PI + 0.3, MAT.paper); bot(0.6, 3.6, Math.PI - 0.1, MAT.blue); bot(3.6, 1.8, Math.PI - 0.4, MAT.paper); bot(-0.9, 6.4, Math.PI + 0.1, MAT.paper);
   }
 
-  /* HANGZHOU: a pagoda over West Lake, the moon bridge, the three stone lanterns in the water. Where I studied first. */
+  /* HANGZHOU: West Lake. A pagoda on its hill above rows of tea; the causeway and its moon bridge; the three stone
+     lanterns in the water; and the gate of the academy Zhejiang University grew from. Where I studied first. */
   function pagoda() {
     const R = TAU / 16;
     loft([[0, 8.8], [1.1, 8.4]], 8, MAT.stone, { rot: R, top: MAT.paper });
@@ -484,26 +586,115 @@
       if (i > 0) { bx(o0[0], o0[1], cz + hw - 0.12, 0.2, 0.75, 0.2, MAT.blue); bx(o0[0], o0[1], cz - hw + 0.12, 0.2, 0.75, 0.2, MAT.blue); }
     }
   }
-  let PAGODA_TOP = 40;
-  function hzIsle() {
-    withM(mT(-4.5, 0, -4.5), function () { PAGODA_TOP = pagoda(); });
-    flat(6, 0.06, 6.5, 7.6, 4.9, 18, MAT.water, 0.2);
-    moonBridge(6, 6.2, 4.9, 2.7, 2.4);
-    [[2.6, 9.3], [5.8, 10.1], [9.2, 9.2]].forEach(function (q) {
-      loft([[0.06, 0.5], [0.9, 0.36], [1.0, 0.78], [1.7, 0.7], [1.8, 0.95], [2.5, 0.05]], 6, MAT.paper, { cx: q[0], cz: q[1], cap: 'none' });
-    });
-    cypress(10.5, -4.5, 7.5); cypress(12.6, -0.6, 5.6); cypress(7.6, -8.4, 6.4); willow(-11.5, 6.5, 5.2); willow(-8, 10.5, 4.2);
-    /* a lakeside pavilion */
-    withM(mT(11.5, 0, -10), function () {
-      bx(0, 0, 0, 5, 0.5, 5, MAT.stone, { top: MAT.paper });
-      [[-1.9, -1.9], [1.9, -1.9], [1.9, 1.9], [-1.9, 1.9]].forEach(q => bx(q[0], 0.5, q[1], 0.32, 2.8, 0.32, MAT.blue));
-      hip(0, 0, 3.3, 5.2, 6.4, 6.4, 0.3, 0.3, MAT.roof); ico([0, 5.4, 0], 0.3, MAT.paper, 0);
+  /* 求是, "seek the truth": the motto on the gate, as the page's own pixel face draws it (12 x 12 each) */
+  const QIUSHI = [
+    '000001001000000001000100111111111110000001000000010001000100001001101000000001010000000011001000001101000100110001000010000111000000000000000000',
+    '011111111100010000000100011111111100010000000100011111111100000000000000111111111110001001000000001001111100010111000000100000111110000000000000'
+  ];
+  /* one of the three stone lanterns that stand in the lake (三潭印月): lit, each puts a moon on the water */
+  function stoneLantern(x, z) {
+    at(x, 0, z, function () {
+      loft([[0.06, 0.46], [0.55, 0.32]], 6, MAT.paper);
+      loft([[0.55, 0.3], [0.92, 0.84], [1.6, 0.84], [1.95, 0.36]], 8, MAT.paper, { cap: 'none', rot: TAU / 16 });
+      for (let i = 0; i < 8; i += 2) facet(8, TAU / 16, i, 0.84, 1.0, 0.84, 1.52, 0.5, MAT.glow);
+      loft([[1.95, 1.0], [2.2, 0.16]], 6, MAT.roof, { cap: 'none', up: 1 });
+      loft([[2.2, 0.2], [2.55, 0.26], [3.0, 0.03]], 6, MAT.paper, { cap: 'none' });
     });
   }
+  function swan(x, z, ry) {
+    at(x, 0.1, z, function () {
+      ico([0, 0.26, 0], 0.5, MAT.ink, 0, { sy: 0.55 });
+      tube([0.3, 0.36, 0], [0.56, 1.0, 0], 0.08, MAT.ink, 4); tube([0.56, 1.0, 0], [0.82, 0.88, 0], 0.08, MAT.ink, 4);
+      tri([0.8, 0.95, -0.07], [0.8, 0.95, 0.07], [1.08, 0.82, 0], MAT.ember, { n: [0, 1, 0] });
+    }, ry);
+  }
+  function hzIsle() {
+    /* West Lake */
+    flat(3, 0.06, 7.2, 12.6, 8.3, 20, MAT.water, 0.2); flat(-7.5, 0.06, 9.6, 6.2, 5.2, 14, MAT.water, 0.5);
+    /* the hill, its rows of tea, the pagoda */
+    loft([[0, 10.6], [2.4, 9.1], [4.4, 7.7], [5.0, 7.4]], 9, MAT.stone, { cx: -7, cz: -7, rot: 0.3, top: MAT.paper });
+    for (let j = 0; j < 4; j++) {
+      const y = 0.75 + j * 1.0, r = (y < 2.4 ? 10.6 - 0.625 * y : 9.1 - 0.7 * (y - 2.4)) * 0.975, seg = 11;
+      for (let i = 0; i < seg; i++) {
+        const a = -0.45 + i / seg * 2.75, b = -0.45 + (i + 1) / seg * 2.75;
+        tube([-7 + Math.cos(a) * r, y, -7 + Math.sin(a) * r], [-7 + Math.cos(b) * r, y, -7 + Math.sin(b) * r], 0.27, MAT.roof, 4);
+      }
+    }
+    withM(MM(mT(-7, 5.0, -7), mS(0.8)), pagoda);
+    /* the causeway, willow and peach by turns, and the moon bridge in the middle of it */
+    bx(-5.95, 0, 6.2, 14.1, 0.45, 2.4, MAT.stone, { top: MAT.paper }); bx(13.3, 0, 6.2, 4.8, 0.45, 2.4, MAT.stone, { top: MAT.paper });
+    at(0, 0.45, 0, function () { moonBridge(6, 6.2, 4.9, 2.7, 2.4); });
+    [[-11.6, 5.5, 4.6], [-7.2, 6.9, 5.0], [-2.6, 5.5, 4.4], [12.6, 6.9, 4.4]].forEach(q => at(q[0], 0.45, q[1], function () { willow(0, 0, q[2], q[0]); }));
+    [[-9.4, 6.9, 3.0], [-4.9, 5.5, 3.3], [-0.3, 6.9, 2.9], [14.7, 5.5, 3.0]].forEach(q => at(q[0], 0.45, q[1], function () { peach(0, 0, q[2]); }));
+    willow(-14.6, 12.4, 5.4, 1); willow(16.6, 2.2, 4.8, 2);
+    /* in the water: the three lanterns, lotus, the black swans of the campus lake */
+    stoneLantern(-1.8, 13.0); stoneLantern(2.4, 14.4); stoneLantern(6.0, 13.0);
+    [[-8.6, 11.4, 0.8], [-7.2, 12.5, 0.6], [-9.7, 12.6, 0.55], [-6.5, 10.9, 0.5], [-8.3, 13.6, 0.7], [-10.6, 11.2, 0.5]].forEach(q => flat(q[0], 0.12, q[1], q[2], q[2], 7, MAT.blue, q[0]));
+    [[-7.8, 11.9], [-9.2, 13.2], [-6.9, 13.3]].forEach(function (q) { tube([q[0], 0.1, q[1]], [q[0], 0.8, q[1]], 0.04, MAT.blue, 3); ico([q[0], 0.95, q[1]], 0.22, MAT.brick, 0, { sy: 1.3 }); });
+    swan(-10.3, 8.4, 0.5); swan(-9.0, 9.1, -0.4);
+    /* a pavilion on the shore: vermilion posts, a tiled roof turned up at the eaves */
+    at(14.3, 0, 11.3, function () {
+      loft([[0, 2.7], [0.6, 2.5]], 6, MAT.stone, { top: MAT.paper, rot: TAU / 12 });
+      for (let i = 0; i < 6; i++) { const a = TAU / 12 + i / 6 * TAU; bx(Math.cos(a) * 1.8, 0.6, Math.sin(a) * 1.8, 0.24, 2.5, 0.24, MAT.brick); }
+      loft([[2.96, 3.25], [3.0, 1.9]], 6, MAT.stone, { rot: TAU / 12, cap: 'none', down: 1, bias: 1 });
+      loft([[3.0, 3.3], [3.3, 2.6], [4.6, 0.5], [5.4, 0.05]], 6, MAT.iron, { rot: TAU / 12, cap: 'none', up: 1 });
+      loft([[3.0, 3.3], [3.5, 3.9]], 6, MAT.iron, { rot: TAU / 12, cap: 'none', up: 1 });
+      ico([0, 5.55, 0], 0.26, MAT.ember, 0);
+    });
+    /* 求是书院, the academy the university grew from: white walls, dark tiles, horse-head gables */
+    at(10.5, 0, -8.6, function () {
+      const w = 9.6, d = 4.6, h = 3.9, rh = 1.9, y0 = 0.4, sw = (d + 1.0) / 5;
+      bx(0, 0, 0, w + 1.6, y0, d + 2.4, MAT.stone, { top: MAT.paper });
+      bx(0, y0, 0, w, h, d, MAT.paper);
+      quad([-w / 2, y0 + h, d / 2 + 0.6], [w / 2, y0 + h, d / 2 + 0.6], [w / 2, y0 + h + rh, 0], [-w / 2, y0 + h + rh, 0], MAT.iron, { n: [0, 1, 0] });
+      quad([-w / 2, y0 + h, -d / 2 - 0.6], [w / 2, y0 + h, -d / 2 - 0.6], [w / 2, y0 + h + rh, 0], [-w / 2, y0 + h + rh, 0], MAT.iron, { n: [0, 1, 0] });
+      bx(0, y0 + h + rh - 0.12, 0, w, 0.34, 0.4, MAT.paper);
+      [-1, 1].forEach(function (sx) {
+        for (let j = -2; j <= 2; j++) {
+          const top = y0 + h + rh * (1 - Math.abs(j) * 0.42) + 0.75;
+          bx(sx * (w / 2 + 0.1), y0, j * sw, 0.5, top - y0, sw, MAT.paper);
+          bx(sx * (w / 2 + 0.1), top, j * sw, 0.86, 0.2, sw + 0.3, MAT.iron);
+        }
+      });
+      wall('+z', d / 2, -0.9, 0.9, y0, 3.0, MAT.ink);
+      [-3.3, -1.9, 1.9, 3.3].forEach(function (x) {
+        wall('+z', d / 2, x - 0.5, x + 0.5, 1.5, 3.1, MAT.roof);
+        wall('+z', d / 2 + 0.03, x - 0.04, x + 0.04, 1.5, 3.1, MAT.paper); wall('+z', d / 2 + 0.03, x - 0.5, x + 0.5, 2.26, 2.34, MAT.paper);
+      });
+    });
+    /* the stone gate, and the two characters on its board */
+    at(10.5, 0, -2.6, function () {
+      [[-3.5, 4.0], [-1.55, 5.3], [1.55, 5.3], [3.5, 4.0]].forEach(function (q) { bx(q[0], 0, 0, 0.62, 0.5, 0.9, MAT.stone); bx(q[0], 0.5, 0, 0.4, q[1] - 0.5, 0.4, MAT.paper); });
+      bx(0, 4.35, 0, 3.5, 0.42, 0.42, MAT.paper); bx(0, 3.0, 0, 3.1, 0.3, 0.3, MAT.paper);
+      [-2.52, 2.52].forEach(function (x) { bx(x, 3.25, 0, 1.95, 0.36, 0.36, MAT.paper); hip(x, 0, 3.9, 4.4, 2.9, 1.3, 1.9, 0.2, MAT.iron); });
+      hip(0, 0, 5.2, 5.85, 4.6, 1.5, 3.4, 0.2, MAT.iron);
+      wall('+z', 0.16, -1.3, 1.3, 3.32, 4.33, MAT.ink);
+      QIUSHI.forEach(function (bits, g) {
+        const s = 0.082, x0 = -1.08 + g * 1.14, y1 = 4.3, z = 0.27;
+        for (let r = 0; r < 12; r++) for (let c = 0; c < 12; c++) if (bits.charAt(r * 12 + c) === '1')
+          quad([x0 + c * s, y1 - (r + 1) * s, z], [x0 + (c + 1) * s, y1 - (r + 1) * s, z], [x0 + (c + 1) * s, y1 - r * s, z], [x0 + c * s, y1 - r * s, z], MAT.glow, { n: [0, 0, 1] });
+      });
+    });
+    /* a garden wall and its moon gate; bamboo; dawn redwoods */
+    bx(5.3, 0, -4.4, 4.6, 2.9, 0.45, MAT.paper); bx(5.3, 2.9, -4.4, 5.0, 0.22, 0.85, MAT.iron);
+    decal([5.3, 1.5, -4.1], [0, 0, 1], ngon(1.1, 14), MAT.ink);
+    bamboo(17, -4.8, 7, 5); bamboo(4.4, -11.4, 6, 9);
+    redwood(15.6, -12, 8.5); redwood(5.6, -14.8, 7); redwood(-17.6, 1.5, 6.5);
+  }
 
-  /* PHILADELPHIA: City Hall's tower with Penn on top, the bell, a row of houses, and a quadrotor from the GRASP Lab overhead. */
+  /* PHILADELPHIA: City Hall's tower with Penn on top; College Hall, and Franklin in his chair on the green; a brick
+     row; the bell and its crack; Boathouse Row lit along the Schuylkill; a GRASP Lab quadrotor overhead. */
+  function rowhouse(x, z, w, h, m, lit) {
+    const dx = x - w * 0.22, wx = x + w * 0.22, f = z + 2.2;
+    bx(x, 0, z, w, h, 4.4, m); bx(x, h, z, w + 0.14, 0.34, 4.6, MAT.paper);
+    bx(dx, 0, f + 0.45, 0.9, 0.3, 0.9, MAT.paper); bx(dx, 0.3, f + 0.3, 0.9, 0.3, 0.6, MAT.paper);
+    wall('+z', f, dx - 0.32, dx + 0.32, 0.6, 2.3, MAT.ink);
+    wall('+z', f, wx - 0.3, wx + 0.3, 1.2, 2.2, lit === 0 ? MAT.glow : MAT.ink);
+    for (let fl = 1; fl * 1.75 + 2.3 < h; fl++) [dx, wx].forEach(function (q, i) { wall('+z', f, q - 0.3, q + 0.3, 1.2 + fl * 1.75, 2.25 + fl * 1.75, lit === fl && i === 0 ? MAT.glow : MAT.ink); });
+    bx(x + w * 0.3, h + 0.34, z - 1.2, 0.5, 0.9, 0.5, m);
+  }
   function phlIsle() {
-    withM(mT(-2, 0, -2.5), function () {
+    at(-7, 0, -7.5, function () {
       bx(0, 0, 0, 12.4, 1, 10.8, MAT.stone, { top: MAT.paper });
       bx(0, 1, 0, 10.6, 7.2, 9.2, MAT.paper);
       grid('+z', 4.6, -4.7, 4.7, 1.8, 7.6, 4, 2, 0.46, 0.62, MAT.ink); grid('-x', -5.3, -4.1, 4.1, 1.8, 7.6, 3, 2, 0.46, 0.62, MAT.ink);
@@ -513,8 +704,9 @@
       grid('+z', 2.6, -1.8, 1.8, 11.4, 20.6, 2, 3, 0.4, 0.66, MAT.ink); grid('-x', -2.6, -1.8, 1.8, 11.4, 20.6, 2, 3, 0.4, 0.66, MAT.ink);
       grid('+x', 2.6, -1.8, 1.8, 11.4, 20.6, 2, 3, 0.4, 0.66, MAT.ink);
       bx(0, 21.6, 0, 6.0, 4.8, 6.0, MAT.blue);
+      /* the clock's four faces are lit at night */
       [[[0, 24, 3.07], [0, 0, 1]], [[3.07, 24, 0], [1, 0, 0]], [[-3.07, 24, 0], [-1, 0, 0]], [[0, 24, -3.07], [0, 0, -1]]].forEach(function (f) {
-        decal(f[0], f[1], ngon(1.85, 14), MAT.paper);
+        decal(f[0], f[1], ngon(1.85, 14), MAT.glow);
         const c = add(f[0], [f[1][0] * 0.05, 0, f[1][2] * 0.05]);
         decal(c, f[1], [[-0.1, 0], [0.1, 0], [0.1, 1.45], [-0.1, 1.45]], MAT.ink); decal(c, f[1], [[0, -0.1], [1.0, -0.1], [1.0, 0.1], [0, 0.1]], MAT.ink);
       });
@@ -523,15 +715,58 @@
       bx(0, 34.4, 0, 1.0, 0.8, 1.0, MAT.paper);
       bx(0, 35.2, 0, 0.62, 1.6, 0.5, MAT.blue); ico([0, 37.1, 0], 0.34, MAT.paper, 0); loft([[37.35, 0.62], [37.45, 0.62]], 8, MAT.blue, { cap: 'both' });
     });
-    /* the bell */
-    withM(MM(mT(7.2, 0, 6.2), mRY(-0.3)), function () {
+    /* College Hall: grey stone, pointed windows, a gable in the middle and a pavilion at each end */
+    at(7.2, 0, -7.6, function () {
+      const gw = function (x, y, z) { decal([x, y, z], [0, 0, 1], [[-0.34, 0], [0.34, 0], [0.34, 1.25], [0, 1.8], [-0.34, 1.25]], MAT.ink); };
+      bx(0, 0, 0, 15.6, 0.5, 7.4, MAT.stone, { top: MAT.paper });
+      bx(0, 0.5, 0, 14, 5.6, 5.6, MAT.stone);
+      hip(0, 0, 6.1, 8.3, 14.4, 6.0, 11.6, 1.8, MAT.roof);
+      house(0, 0.5, 1.9, 4.8, 7.6, 3.6, 2.8, 'z', MAT.stone, MAT.roof);
+      [-5.6, 5.6].forEach(function (x) { bx(x, 0.5, 0.5, 3.4, 7.0, 6.2, MAT.stone); hip(x, 0.5, 7.5, 9.9, 3.8, 6.6, 1.3, 2.4, MAT.roof); });
+      [-3.5, 3.5].forEach(function (x) { gw(x, 1.3, 2.87); gw(x, 3.8, 2.87); });
+      [-6.25, -4.95, 4.95, 6.25].forEach(function (x) { gw(x, 1.3, 3.67); gw(x, 4.2, 3.67); });
+      [-1.1, 1.1].forEach(function (x) { gw(x, 4.7, 3.77); });
+      decal([0, 0.5, 3.77], [0, 0, 1], archPts(1.7, 1.9, 8), MAT.ink);
+      decal([0, 8.3, 3.77], [0, 0, 1], ngon(0.55, 8), MAT.glow);
+      bx(-2.9, 8.3, -0.6, 0.6, 1.5, 0.6, MAT.stone); bx(2.9, 8.3, -0.6, 0.6, 1.5, 0.6, MAT.stone);
+      /* red and blue from the gable */
+      tube([0, 10.9, 1.9], [0, 13.8, 1.9], 0.06, MAT.paper, 3);
+      quad([0.06, 13.7, 1.9], [1.6, 13.5, 1.9], [1.6, 13.1, 1.9], [0.06, 13.2, 1.9], MAT.ember, { n: [0, 0, 1] });
+      quad([0.06, 13.2, 1.9], [1.6, 13.1, 1.9], [1.6, 12.7, 1.9], [0.06, 12.7, 1.9], MAT.blue, { n: [0, 0, 1], bias: 1 });
+    });
+    /* the green, its paths, and Franklin */
+    flat(7.2, 0.05, 1.2, 7.6, 3.4, 14, MAT.turf, 0.2);
+    wall('+y', 0.02, 6.8, 7.6, -2.6, 4.3, MAT.paper); wall('+y', 0.02, 0.6, 13.8, 0.9, 1.6, MAT.paper);
+    at(7.2, 0, -1.7, function () {
+      bx(0, 0, 0, 2.3, 0.4, 2.3, MAT.stone, { top: MAT.paper }); bx(0, 0.4, 0, 1.6, 2.2, 1.6, MAT.paper);
+      bx(0, 2.6, -0.1, 1.2, 0.8, 1.1, MAT.iron); bx(0, 3.4, -0.55, 1.2, 1.2, 0.24, MAT.iron);
+      bx(0, 3.4, -0.1, 0.8, 1.0, 0.56, MAT.iron); ico([0, 4.72, -0.05], 0.3, MAT.iron, 0);
+      bx(-0.24, 2.7, 0.62, 0.26, 0.75, 0.3, MAT.iron); bx(0.24, 2.7, 0.62, 0.26, 0.75, 0.3, MAT.iron);
+    });
+    /* a brick row: stoops, cornices, one lit window each */
+    [[5.6, MAT.brick], [6.4, MAT.brick], [5.2, MAT.paper], [6.1, MAT.brick], [5.5, MAT.blue]].forEach(function (r, i) { rowhouse(-15.4 + i * 2.36, 1.2, 2.3, r[0], r[1], (i * 2 + 1) % 3); });
+    maple(-16.6, 6.2, 5.2, MAT.brick); maple(-11.2, 6.4, 4.6, MAT.ember); maple(-6.2, 6.0, 5.0, MAT.brick); maple(13.8, 5.6, 5.4, MAT.ember);
+    /* the bell, and its crack */
+    at(-1.6, 0, 6.4, function () {
       bx(0, 0, 0, 4.4, 0.5, 2.4, MAT.stone, { top: MAT.paper });
       bx(-1.7, 0.5, 0, 0.36, 3.9, 0.36, MAT.blue); bx(1.7, 0.5, 0, 0.36, 3.9, 0.36, MAT.blue); bx(0, 4.2, 0, 4.2, 0.44, 0.5, MAT.blue);
       loft([[1.3, 1.3], [1.6, 1.05], [2.7, 0.9], [3.5, 0.6], [3.9, 0.22]], 8, MAT.ember, { cap: 'none' }); ico([0, 1.25, 0], 0.28, MAT.iron, 0);
-    });
-    [[-9.2, 7.4, MAT.paper, 4.6], [-6.3, 7.8, MAT.blue, 5.2], [-3.4, 7.5, MAT.paper, 4.4]].forEach(function (h) {
-      house(h[0], 0, h[1], 2.8, h[3], 4.2, 1.6, 'z', h[2], MAT.roof);
-      wall('+z', h[1] + 2.1, h[0] - 0.45, h[0] + 0.45, 0, 1.9, MAT.ink); grid('+z', h[1] + 2.1, h[0] - 1.1, h[0] + 1.1, 2.4, h[3] - 0.2, 2, 1, 0.42, 0.8, MAT.ink);
+      tube([0.2, 1.36, 1.3], [0.05, 2.1, 1.02], 0.05, MAT.ink, 3); tube([0.05, 2.1, 1.02], [0.24, 2.8, 0.9], 0.05, MAT.ink, 3);
+    }, -0.3);
+    /* Boathouse Row, outlined in lights, and the river */
+    flat(0, 0.06, 15.3, 14, 3.5, 18, MAT.water);
+    const dot = function (x, y, z) { quad([x - 0.09, y - 0.09, z], [x + 0.09, y - 0.09, z], [x + 0.09, y + 0.09, z], [x - 0.09, y + 0.09, z], MAT.glow, { n: [0, 0, 1] }); };
+    [[-9.4, 3.4, 2.2, 1.5, MAT.paper], [-5.3, 3.8, 2.6, 1.8, MAT.brick], [-1.0, 3.3, 2.0, 2.0, MAT.blue], [3.2, 4.0, 2.4, 1.4, MAT.paper], [7.4, 3.4, 2.5, 1.8, MAT.brick]].forEach(function (b) {
+      const x = b[0], w = b[1], h = b[2], rh = b[3], z = 9.4, f = z + 1.7, dy = 0.4 * rh / (w / 2);
+      house(x, 0, z, w, h, 3.4, rh, 'z', b[4], MAT.roof);
+      wall('+z', f, x - w * 0.3, x + w * 0.3, 0, 1.5, MAT.ink);
+      wall('+z', f, x - 0.3, x + 0.3, h - 0.3, h + 0.5, MAT.ink);
+      bx(x, 0, f + 1.0, w * 0.62, 0.22, 2.0, MAT.paper);
+      for (let k = 0; k <= 6; k++) {
+        const t = k / 6, ex = (w / 2 + 0.4) * (1 - t), ey = h - dy + t * (rh + dy) + 0.02;
+        dot(x - ex, ey, f + 0.46); if (k < 6) dot(x + ex, ey, f + 0.46);
+      }
+      for (let y = 0.5; y < h - 0.3; y += 0.62) { dot(x - w / 2, y, f + 0.08); dot(x + w / 2, y, f + 0.08); }
     });
   }
 
@@ -574,49 +809,82 @@
     chain([a.p[0] + d[0] * a.R * 0.9, a.p[1] - 0.6, a.p[2] + d[2] * a.R * 0.9], [b.p[0] - d[0] * b.R * 0.9, b.p[1] - 0.6, b.p[2] - d[2] * b.R * 0.9], n, sag, seed);
   }
 
-  /* GRAVIT: a planet in a net that sags under it. What it pulls, orbits. */
-  function wellY(r) { return ORR[1] - 3 - 12.5 * Math.exp(-(r - 9) / 8.5); }
-  function orreryStatic() {
-    ico(ORR, 11, MAT.paperF, 2);
-    const rs = [13, 17, 22, 28, 35];
-    rs.forEach(function (r) {
-      const y = wellY(r), seg = 44;
-      for (let i = 0; i < seg; i++) { const a = i / seg * TAU, b = (i + 1) / seg * TAU; tube([ORR[0] + Math.cos(a) * r, y, ORR[2] + Math.sin(a) * r], [ORR[0] + Math.cos(b) * r, y, ORR[2] + Math.sin(b) * r], 0.11, MAT.lineF, 3); }
-    });
-    for (let k = 0; k < 22; k++) {
-      const a = k / 22 * TAU; let pr = 10.6, py = wellY(pr);
-      for (let s = 1; s <= 7; s++) {
-        const r = 10.6 + (35 - 10.6) * s / 7, y = wellY(r);
-        tube([ORR[0] + Math.cos(a) * pr, py, ORR[2] + Math.sin(a) * pr], [ORR[0] + Math.cos(a) * r, y, ORR[2] + Math.sin(a) * r], 0.11, MAT.lineF, 3);
-        pr = r; py = y;
-      }
-    }
-    /* tethers: everything here is held by it */
-    tube([0, 41.8, 0], [ORR[0] - 8, ORR[1] - 9, ORR[2] + 6], 0.06, MAT.line, 3);
-    const pt = mapply(ISLM.hz, [-4.5, PAGODA_TOP - 0.4, -4.5]);
-    tube(pt, [ORR[0] - 10, ORR[1] - 5, ORR[2] + 2], 0.06, MAT.line, 3);
+  /* GRAVIT: an orrery on a rock of its own, riding above the rest on a chain of blocks. A key winds it; the meter in
+     the Now window says how hard. What moves is built in buildMovers: the sun, the four arms, the gears, the key. */
+  function gravitIsle() {
+    loft([[0, 3.7], [1.1, 3.3]], 8, MAT.stone, { top: MAT.paper, rot: 0.2 });
+    bx(0, 1.1, 0, 4.6, 2.7, 4.6, MAT.blue, { top: MAT.paper });
+    wall('+z', 2.3, -1.9, 1.9, 1.5, 3.4, MAT.roof);
+    loft([[3.8, 1.0], [4.3, 0.8]], 8, MAT.paper);
+    tube([0, 4.3, 0], [0, 7.7, 0], 0.28, MAT.paper, 6);
+    [4.45, 5.2, 5.95, 6.7].forEach(function (y) { loft([[y - 0.3, 0.7], [y + 0.26, 0.7]], 8, MAT.blue, { cap: 'both' }); });
   }
 
   /* --- the parts that move --- */
   let effort = 3, effortK = 1;        /* the Now window's control: how hard the orrery turns */
   function buildMovers() {
-    /* the population on the kiln's ring */
     const cubeP = capture(function () { bx(0, -0.5, 0, 1, 1, 1, MAT.paper, { bottom: 1 }); });
     const cubeB = capture(function () { bx(0, -0.5, 0, 1, 1, 1, MAT.blue, { bottom: 1 }); });
     const cubeE = capture(function () { bx(0, -0.5, 0, 1, 1, 1, MAT.ember, { bottom: 1 }); });
-    const ringM = MM(ISLM.forge, mT(0, 29.3, 0), mRX(0.2), mRZ(0.1));
+    const cubeG = capture(function () { bx(0, -0.5, 0, 1, 1, 1, MAT.glow, { bottom: 1 }); });
+    /* the charge: one by one across the bridge and into the mouth */
     anim.push(function (t, emit) {
-      for (let k = 0; k < 12; k++) {
-        const s = 0.95 + ((k * 7) % 5) * 0.22;
-        emit(k === 4 ? cubeE : (k % 3 === 0 ? cubeB : cubeP), MM(ringM, mRY(t * 0.17 + k * TAU / 12), mT(9, 0, 0), mRY(t * 0.5 + k), mRX(k * 1.3 + t * 0.2), mS(k === 4 ? 1.9 : s)), 1);
+      for (let k = 0; k < 3; k++) {
+        const u = (t / 11 + k / 3) % 1; let y, z, s = 1, tip = 0;
+        if (u < 0.12) { z = -15.6; y = 23.4; s = smooth(u / 0.12); }
+        else if (u < 0.26) { const q = (u - 0.12) / 0.14; z = -15.6 + q * 2.8; y = 23.4 + q * 0.1; }
+        else if (u < 0.8) { const q = (u - 0.26) / 0.54; z = -12.8 + q * 8.3; y = 23.5 + q * 0.95; }
+        else { const q = (u - 0.8) / 0.2; z = -4.5 + q * 2.6; y = 24.45 - q * q * 2.4; s = 1 - smooth(q); tip = q * 2.2; }
+        emit(k === 1 ? cubeE : k === 2 ? cubeB : cubeP, MM(FM, mT(0, y + 0.56 * s, z), mRX(tip), mS(1.1 * s + 0.001)), 1);
       }
     });
-    /* smoke, in facets */
-    const puff = capture(function () { ico([0, 0, 0], 1, MAT.paper, 1); });
+    /* what the fire sends up: lit, then red, then ash */
     anim.push(function (t, emit) {
-      for (let k = 0; k < 5; k++) {
-        const life = (t / 17 + k / 5) % 1, grow = Math.min(1, life * 9) * (1 - smooth(clamp((life - 0.72) / 0.28, 0, 1)));
-        emit(puff, MM(ISLM.forge, mT(life * life * 13, 43 + life * 36, -life * 5), mRY(k * 2 + t * 0.12), mRX(k), mS((1.1 + life * 3.0) * grow + 0.001)), 1);
+      for (let k = 0; k < 6; k++) {
+        const life = (t / 14 + k / 6) % 1, grow = Math.min(1, life * 8) * (1 - smooth(clamp((life - 0.7) / 0.3, 0, 1)));
+        emit(life < 0.14 ? cubeG : life < 0.4 ? cubeE : cubeP, MM(FM, mT(Math.sin(k * 2.4 + life * 5) * (0.5 + life * 4.5), 25.2 + life * 30, -life * life * 8 + Math.cos(k * 1.7 + life * 4) * (0.5 + life * 2.5)),
+          mRY(k * 2 + t * 0.35), mRX(k + t * 0.25), mS((0.7 + life * 1.5) * grow + 0.001)), 1);
+      }
+    });
+    /* a cast: iron runs down the sow and fills the pigs two by two; then they cool */
+    const pigG = capture(function () { quad([-1.8, 0, -0.24], [1.8, 0, -0.24], [1.8, 0, 0.24], [-1.8, 0, 0.24], MAT.glow, { n: [0, 1, 0] }); });
+    const pigE = capture(function () { quad([-1.8, 0, -0.24], [1.8, 0, -0.24], [1.8, 0, 0.24], [-1.8, 0, 0.24], MAT.ember, { n: [0, 1, 0] }); });
+    const runG = capture(function () { quad([-0.3, 0, -0.9], [0.3, 0, -0.9], [0.3, 0, 0.9], [-0.3, 0, 0.9], MAT.glow, { n: [0, 1, 0] }); });
+    anim.push(function (t, emit) {
+      const c = (t % 18) / 18, head = 10.9 + clamp(c / 0.3, 0, 1) * 9.9;
+      if (c < 0.3) emit(runG, MM(FM, mT(0, 1.12, head)), 1);
+      for (let k = 0; k < 7; k++) {
+        const z = 14.9 + k * 1.05, since = c - 0.3 * (z - 10.9) / 9.9;
+        if (since < 0 || since > 0.52) continue;
+        const part = since < 0.1 ? pigG : pigE;
+        emit(part, MM(FM, mT(2.1, 1.11, z)), 1); emit(part, MM(FM, mT(-2.1, 1.11, z)), 1);
+      }
+    });
+    /* the tilt hammer: the cam bears the helve's tail down, lets go, and the head falls */
+    const HM = mmul(FM, mT(11.8, 0, 13.4));
+    const helve = capture(function () {
+      bx(-0.9, -0.35, 0, 9, 0.7, 0.7, MAT.paper, { bottom: 1 });
+      bx(-4.8, -1.85, 0, 1.6, 1.5, 1.4, MAT.iron, { bottom: 1 });
+      bx(-4.8, -0.42, 0, 1.7, 0.84, 0.84, MAT.iron, { bottom: 1 }); bx(3.2, -0.42, 0, 0.5, 0.84, 0.84, MAT.iron, { bottom: 1 });
+    });
+    const drum = capture(function () {
+      loft([[-1.2, 0.85], [1.2, 0.85]], 8, MAT.blue, { cap: 'both' });
+      for (let k = 0; k < 4; k++) withM(mRY(k * TAU / 4), function () { bx(1.1, -0.45, 0, 0.8, 0.9, 0.5, MAT.iron, { bottom: 1 }); });
+      loft([[2.3, 1.7], [2.7, 1.7]], 12, MAT.blue, { cap: 'both' });
+      for (let k = 0; k < 3; k++) withM(mRY(k * TAU / 3), function () { wall('+y', 2.7, 0.5, 1.35, -0.26, 0.26, MAT.paper); });
+    });
+    anim.push(function (t, emit) {
+      const T = 2.4, ph = (t / T) % 1; let th;
+      if (ph < 0.76) { const q = ph / 0.76; th = 0.3 * q * q * (3 - 2 * q); }
+      else if (ph < 0.84) { const q = (ph - 0.76) / 0.08; th = 0.3 * (1 - q * q); }
+      else { const q = (ph - 0.84) / 0.16; th = 0.03 * Math.sin(q * Math.PI) * (1 - q); }
+      emit(helve, MM(HM, mT(1.2, 4.4, 0), mRZ(-th)), 1);
+      emit(drum, MM(HM, mT(5.7, 5.9, 0), mRX(Math.PI / 2), mRY(-(t / T) * TAU / 4)), 1);
+      const since = ((ph - 0.84 + 1) % 1) * T;            /* sparks off the anvil at each blow */
+      if (since < 0.55) for (let k = 0; k < 7; k++) {
+        const a = k * 0.9 + Math.floor(t / T) * 1.7, v = 3.2 + (k % 3) * 1.3, e = 0.5 + (k % 4) * 0.22;
+        emit(k % 2 ? cubeG : cubeE, MM(HM, mT(-3.6 + Math.cos(a) * v * since, 2.6 + v * e * 1.6 * since - 9 * since * since, Math.sin(a) * v * since),
+          mRY(a + since * 9), mRX(since * 7), mS(0.34 * (1 - since / 0.55) + 0.001)), 1);
       }
     });
     /* the humanoid */
@@ -684,78 +952,135 @@
     };
     const ROTORS = [[1.98, 1.98], [-1.98, 1.98], [1.98, -1.98], [-1.98, -1.98]];
     anim.push(function (t, emit) {
-      const m = MM(ISLM.phl, mT(8 + 3.2 * Math.sin(t * 0.5), 25 + 1.3 * Math.sin(t * 0.9), 4 + 2.4 * Math.sin(t)), mRY(0.4 * Math.sin(t * 0.3)), mRZ(-0.22 * Math.cos(t * 0.5)), mRX(0.2 * Math.cos(t)));
+      const m = MM(ISLM.phl, mT(3 + 4.6 * Math.sin(t * 0.5), 29 + 1.4 * Math.sin(t * 0.9), 0.5 + 3.4 * Math.sin(t * 0.8)), mRY(0.4 * Math.sin(t * 0.3)), mRZ(-0.22 * Math.cos(t * 0.5)), mRX(0.2 * Math.cos(t * 0.8)));
       emit(Q.frame, m, 5);
       for (let i = 0; i < 4; i++) emit(Q.rotor, MM(m, mT(ROTORS[i][0], 0.56, ROTORS[i][1]), mRY(t * (i % 2 ? 11 : -11))), 5);
     });
     /* the ball */
     const ball = capture(function () { ico([0, 0, 0], 0.72, MAT.paper, 1, { pick: i => ((i * 7) % 11 < 3 ? MAT.ink : MAT.paper) }); });
     anim.push(function (t, emit) { emit(ball, MM(ISLM.pitch, mT(4.6, 0.5 + 0.72 + 3.3 * Math.abs(Math.sin(t * 2.15)), 0.4), mRX(t * 2), mRZ(t * 1.3)), 6); });
-    /* a paper plane, circling the kiln */
+    /* a paper plane, circling the furnace */
     const plane = capture(function () {
       const nose = [0, 0, 1.7], tl = [-1.05, 0.3, -1.2], tr = [1.05, 0.3, -1.2], ct = [0, 0.18, -1.2], kb = [0, -0.5, -1.2];
       tri(nose, tl, ct, MAT.paper, { n: [0, 1, 0] }); tri(nose, ct, tr, MAT.paper, { n: [0, 1, 0] });
       tri(nose, kb, ct, MAT.ember, { n: [1, 0, 0] });
     });
     anim.push(function (t, emit) {
-      const a = t * 0.23, x = Math.cos(a) * 34, z = Math.sin(a) * 25, y = 27 + 6 * Math.sin(a * 2 + 1), vx = -Math.sin(a) * 34, vz = Math.cos(a) * 25, vy = 12 * Math.cos(a * 2 + 1);
+      const a = t * 0.23, x = Math.cos(a) * 34, z = Math.sin(a) * 27, y = 41 + 4 * Math.sin(a * 2 + 1), vx = -Math.sin(a) * 34, vz = Math.cos(a) * 27, vy = 8 * Math.cos(a * 2 + 1);
       emit(plane, MM(mT(x, y, z), mRY(Math.atan2(vx, vz)), mRX(-Math.atan2(vy, Math.hypot(vx, vz)) * 0.6), mRZ(-0.5), mS(1.5)), 0);
     });
-    /* the orrery */
-    const orbits = [
-      { R: 16.5, tx: 0.36, tz: 0.16, w: 0.11, moons: [[0, 1.7, MAT.emberF]] },
-      { R: 22.5, tx: -0.56, tz: 0.4, w: -0.075, moons: [[1.2, 1.25, MAT.blueF], [4.0, 2.1, MAT.paperF]] },
-      { R: 28.5, tx: 1.1, tz: -0.22, w: 0.052, moons: [[2.6, 2.7, MAT.paperF], [5.4, 1.0, MAT.blueF]] }
-    ];
-    orbits.forEach(function (o) {
-      o.part = capture(function () {
-        hoop(o.R, 0.16, 72, MAT.lineF, 3);
-        o.moons.forEach(function (mn) { ico([Math.cos(mn[0]) * o.R, 0, Math.sin(mn[0]) * o.R], mn[1], mn[2], 1); });
+    /* a covered boat on West Lake */
+    const boat = capture(function () {
+      loft([[0, 1.5, 0.4], [0.5, 2.0, 0.62]], 8, MAT.paper, { cap: 'none' });
+      flat(0, 0.3, 0, 1.7, 0.5, 8, MAT.stone);
+      [[-0.56, 0.5, -0.3, 1.2], [-0.3, 1.2, 0.3, 1.2], [0.3, 1.2, 0.56, 0.5]].forEach(function (s) {
+        quad([-0.9, s[1], s[0]], [0.9, s[1], s[0]], [0.9, s[3], s[2]], [-0.9, s[3], s[2]], MAT.iron, { c: [0, 0.4, 0] });
       });
-      o.a = 0;
+      bx(1.45, 0.4, 0, 0.26, 0.85, 0.26, MAT.blue); tube([1.6, 0.3, 0.3], [2.3, 2.3, 0.5], 0.04, MAT.paper, 3);
     });
-    let last = 0;
+    anim.push(function (t, emit) {
+      const a = t * 0.11, x = 3.6 + Math.cos(a) * 6.4, z = 10.4 + Math.sin(a) * 1.5, vx = -Math.sin(a) * 6.4, vz = Math.cos(a) * 1.5;
+      emit(boat, MM(ISLM.hz, mT(x, 0.1 + 0.04 * Math.sin(t * 1.7), z), mRY(Math.atan2(-vz, vx)), mRZ(0.03 * Math.sin(t * 1.3))), 4);
+    });
+    /* a four on the Schuylkill */
+    const shell = capture(function () {
+      loft([[0, 3.4, 0.14], [0.26, 4.2, 0.3]], 8, MAT.paper, { cap: 'none' }); flat(0, 0.2, 0, 3.9, 0.24, 8, MAT.blue);
+      for (let i = 0; i < 4; i++) { const x = -1.8 + i * 1.2; bx(x, 0.2, 0, 0.32, 0.6, 0.34, i % 2 ? MAT.brick : MAT.blue); bx(x, 0.8, 0, 0.26, 0.26, 0.26, MAT.paper); }
+    });
+    const oar = capture(function () {
+      tube([0, 0, 0], [0, -0.25, 2.3], 0.035, MAT.paper, 3);
+      quad([-0.1, -0.2, 2.2], [0.1, -0.2, 2.2], [0.14, -0.34, 2.9], [-0.14, -0.34, 2.9], MAT.brick, { n: [0, 1, 0] });
+    });
+    anim.push(function (t, emit) {
+      const st = t * 1.9, ph = Math.sin(st), a = t * 0.085 + 0.02 * Math.sin(st), x = Math.cos(a) * 8.6, z = 15.5 + Math.sin(a) * 1.5, vx = -Math.sin(a) * 8.6, vz = Math.cos(a) * 1.5;
+      const m = MM(ISLM.phl, mT(x, 0.1, z), mRY(Math.atan2(-vz, vx)));
+      emit(shell, m, 5);
+      for (let i = 0; i < 4; i++) { const sd = i % 2 ? 1 : -1; emit(oar, MM(m, mT(-1.8 + i * 1.2, 0.62, sd * 0.2), mRY(sd > 0 ? 0.55 * ph : Math.PI - 0.55 * ph)), 5); }
+    });
+    /* the orrery: a sun, four arms and what they carry, the gears on the case, the key that winds it */
+    const SUN_Y = 11.8, ARMS = [
+      { R: 9, y: 6.7, w: 0.3, r: 1.0, m: MAT.paperF, a: 0.5 },
+      { R: 14.5, y: 5.95, w: 0.19, r: 1.5, m: MAT.blueF, a: 2.2, moons: [[2.7, 0.45, 2.1]] },
+      { R: 20.5, y: 5.2, w: 0.12, r: 1.2, m: MAT.emberF, a: 4.1 },
+      { R: 27, y: 4.45, w: 0.075, r: 2.1, m: MAT.paperF, a: 5.3, moons: [[3.4, 0.5, 1.3], [4.4, 0.36, -0.8]] }
+    ];
+    ARMS.forEach(function (o) {
+      o.part = capture(function () {
+        bx(o.R / 2 - 1.2, -0.18, 0, o.R + 2.4, 0.36, 0.5, MAT.paperF, { bottom: 1 });
+        bx(-2.6, -0.5, 0, 1.2, 1.0, 1.0, MAT.blueF, { bottom: 1 });
+        tube([o.R, 0, 0], [o.R, SUN_Y - o.y, 0], 0.11, MAT.lineF, 4);
+        ico([o.R, SUN_Y - o.y, 0], o.r, o.m, 1);
+      });
+      o.moonParts = (o.moons || []).map(function (mn) { return capture(function () { tube([0, 0, 0], [mn[0], 0, 0], 0.05, MAT.lineF, 3); ico([mn[0], 0, 0], mn[1], MAT.paperF, 0); }); });
+    });
+    const sun = capture(function () { ico([0, 0, 0], 4.2, MAT.sunF, 1); });
+    const key = capture(function () {
+      tube([0, 0, 0], [2.3, 0, 0], 0.16, MAT.paperF, 5);
+      [-1, 1].forEach(function (s) { withM(MM(mT(3.0, s * 0.92, 0), mRZ(Math.PI / 4)), function () { bx(0, -0.62, 0, 1.24, 1.24, 0.26, MAT.paperF, { bottom: 1 }); }); });
+      bx(2.9, -0.2, 0, 0.5, 0.4, 0.3, MAT.blueF, { bottom: 1 });
+    });
+    const gear = function (r, teeth, m) {
+      return capture(function () {
+        loft([[-0.14, r], [0.14, r]], teeth * 2, m, { cap: 'both' });
+        for (let k = 0; k < teeth; k++) withM(mRY(k * TAU / teeth), function () { bx(r + 0.12, -0.14, 0, 0.36, 0.28, r * 0.42, m, { bottom: 1 }); });
+        wall('+y', 0.14, -0.16, 0.16, -r * 0.7, r * 0.7, MAT.ink);
+      });
+    };
+    const gearA = gear(1.25, 10, MAT.paper), gearB = gear(0.65, 5, MAT.ember);
+    let last = 0, wind = 0;
     anim.push(function (t, emit) {
       const dt = clamp(t - last, 0, 0.1); last = t;
       effortK += (([0.25, 0.7, 1.6, 3.4][effort]) - effortK) * Math.min(1, dt * 2.5);
-      orbits.forEach(function (o) { o.a += o.w * effortK * dt * 2.2; emit(o.part, MM(mT(ORR[0], ORR[1], ORR[2]), mRX(o.tx), mRZ(o.tz), mRY(o.a)), 0); });
+      wind += effortK * dt;
+      emit(sun, MM(GM, mT(0, SUN_Y, 0), mRY(wind * 0.05)), 7);
+      ARMS.forEach(function (o) {
+        o.a += o.w * effortK * dt;
+        const m = MM(GM, mT(0, o.y, 0), mRY(o.a));
+        emit(o.part, m, 7);
+        (o.moons || []).forEach(function (mn, i) { emit(o.moonParts[i], MM(m, mT(o.R, SUN_Y - o.y, 0), mRY(wind * mn[2])), 7); });
+      });
+      emit(key, MM(GM, mT(2.3, 2.45, 0), mRX(wind * 1.4)), 7);
+      emit(gearA, MM(GM, mT(-0.75, 2.45, 2.52), mRX(Math.PI / 2), mRY(wind * 0.8)), 7);
+      emit(gearB, MM(GM, mT(1.3, 2.45, 2.52), mRX(Math.PI / 2), mRY(-wind * 1.6 + 0.3)), 7);
     });
   }
 
   function buildWorld() {
     const S = new StaticOut();
     G.out = S;
-    const build = { forge: forgeIsle, robot: robotIsle, bounty: bountyIsle, hz: hzIsle, phl: phlIsle, pitch: pitchIsle };
+    const build = { forge: forgeIsle, robot: robotIsle, bounty: bountyIsle, hz: hzIsle, phl: phlIsle, pitch: pitchIsle, gravit: gravitIsle };
     for (const k in ISL) { const I = ISL[k]; G.bob = I.bob; withM(ISLM[k], function () { rock(I.R, I.d, I.seed); build[k](); }); }
     G.bob = 0;
-    link('forge', 'robot', 3, 1.2, 3); link('robot', 'bounty', 4, 1.6, 4); link('forge', 'phl', 2, 0.8, 6); link('phl', 'hz', 8, 3.4, 9); link('forge', 'pitch', 4, 1.6, 12);
-    orreryStatic();
+    link('forge', 'robot', 3, 1.2, 3); link('robot', 'bounty', 4, 1.6, 4); link('forge', 'phl', 2, 0.8, 6); link('phl', 'hz', 5, 2.6, 9); link('forge', 'pitch', 4, 1.6, 12);
+    /* Gravit rides above the rest, made fast to the bank behind the furnace */
+    chain(mapply(FM, [0, 26.5, -20]), [ISL.gravit.p[0] - 3.5, ISL.gravit.p[1] - 9, ISL.gravit.p[2] + 3], 9, -3.5, 5);
     buildMovers();
     return new Float32Array(S.a);
   }
 
   /* Where the labels hang (world space; b is the island that carries them). */
   const marks = [
-    { id: 'forge', p: [0, 47, 0], b: 1 },
-    { id: 'gravit', p: [ORR[0], ORR[1] + 15, ORR[2]], b: 0 },
+    { id: 'forge', p: mapply(FM, [0, 30, 0]), b: 1 },
+    { id: 'gravit', p: mapply(GM, [0, 19, 0]), b: 7 },
     { id: 'robots', p: mapply(ISLM.robot, [-4, 13, 1.5]), b: 2 },
     { id: 'bounty', p: mapply(ISLM.bounty, [0, 16, -3]), b: 3 },
-    { id: 'hangzhou', p: mapply(ISLM.hz, [-4.5, 43, -4.5]), b: 4 },
-    { id: 'philadelphia', p: mapply(ISLM.phl, [-2, 41, -2.5]), b: 5 },
+    { id: 'hangzhou', p: mapply(ISLM.hz, [-7, 36, -7]), b: 4 },
+    { id: 'philadelphia', p: mapply(ISLM.phl, [-7, 41, -7.5]), b: 5 },
     { id: 'pitch', p: mapply(ISLM.pitch, [-3, 4.6, -1]), b: 6 }
   ];
 
   /* ---------- camera: a stop per window, a curve through them ---------- */
   const STOPS = [
-    { p: [-14, -4, 53], t: [-9, 20, 0], f: 56 },      /* 0 arrival: under the kiln, the others around it */
-    { p: [-6, 8, 50], t: [0, 22, 0], f: 50 },         /* 1 about: toward the kiln */
-    { p: [8, 30, 30], t: [44, 74, -36], f: 50 },      /* 2 now: up at the planet */
-    { p: [21, 7, 45], t: [3, 9.5, 2], f: 46 },        /* 3 research: the kiln's mouth */
+    { p: [-18, 30, 92], t: [-12, 16, -6], f: 50 },    /* 0 arrival: the furnace, the others around it */
+    { p: [-6, 10, 50], t: [0, 12, 0], f: 50 },        /* 1 about: toward the furnace */
+    { p: [4, 80, 30], t: [36, 53, -22], f: 44 },      /* 2 now: over the orrery */
+    { p: [31, 10, 52], t: [4, 8, 4], f: 46 },         /* 3 research: the cast house, the hammer */
     { p: [22, 4, 22], t: [50, -1, -12], f: 46 },      /* 4 experience: the lab floor, the board behind it */
-    { p: [-5.5, 12, 43.6], t: [-46, 16, -25.4], f: 50 }, /* 5 education: Philadelphia near, Hangzhou beyond */
-    { p: [-80, 22, 30], t: [0, 20, -10], f: 52 },     /* 6 skills: everything in profile */
-    { p: [22, -3, 62], t: [40, -9, 34], f: 42 },      /* 7 life: the pitch */
-    { p: [-4, 66, 128], t: [5, 6, -4], f: 50 }        /* 8 the end: all of it, from above */
+    { p: [-22, 36, 60], t: [-56, 10, -4], f: 48 },    /* 5 education: Philadelphia, Hangzhou beyond it */
+    { p: [-22, 26, 4], t: [-38, 14, -62], f: 50 },    /* 6 skills: and Hangzhou, where the first of them were learned */
+    { p: [-10, 46, 36], t: [2, 6, 6], f: 50 },        /* 7 on the way across: the ironworks from above (no window stops here) */
+    { p: [22, -3, 62], t: [40, -9, 34], f: 42 },      /* 8 life: the pitch */
+    { p: [0, 68, 122], t: [10, 9, -8], f: 50 }        /* 9 the end: all of it, from above */
   ];
   function cr(a, b, c, d, t) {
     const t2 = t * t, t3 = t2 * t, o = [0, 0, 0];
@@ -938,7 +1263,7 @@
     gl.uniform3f(u.uBox0, -120, -34, -110); gl.uniform3f(u.uBoxS, 240, 140, 250);
     gl.bindBuffer(gl.ARRAY_BUFFER, bufMote); gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 16, 0); gl.drawArrays(gl.POINTS, 0, moteData.length / 4);
     gl.uniform3f(u.uCol, pal[13 * 3], pal[13 * 3 + 1], pal[13 * 3 + 2]); gl.uniform1f(u.uAlpha, 0.95); gl.uniform1f(u.uRise, 5); gl.uniform1f(u.uSway, 0.5);
-    gl.uniform3f(u.uBox0, 0, 42 + bob[1], 0); gl.uniform3f(u.uBoxS, 1, 30, 1);
+    gl.uniform3f(u.uBox0, 0, 24.6 + bob[1], 0); gl.uniform3f(u.uBoxS, 1, 24, 1);
     gl.bindBuffer(gl.ARRAY_BUFFER, bufSpark); gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 16, 0); gl.drawArrays(gl.POINTS, 0, sparkData.length / 4);
     gl.depthMask(true);
 

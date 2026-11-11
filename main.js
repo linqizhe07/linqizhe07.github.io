@@ -31,13 +31,13 @@
       roles: ['强化学习研究者', '机器人开发者', 'web3 建设者', 'Gravit 联合创始人', '宾大 GRASP 实验室']
     }
   };
-  /* The islands, and the window each one belongs to. */
+  /* The islands, and the window each one belongs to (`also`: a second window the camera shows it from). */
   const MARKS = {
-    forge: { en: 'FORGE · the kiln', zh: 'FORGE · 窑炉', to: 'research' },
-    gravit: { en: 'Gravit · what pulls', zh: 'Gravit · 引力所在', to: 'now' },
+    forge: { en: 'FORGE · the furnace', zh: 'FORGE · 熔炉', to: 'research' },
+    gravit: { en: 'Gravit · the orrery', zh: 'Gravit · 星仪', to: 'now' },
     robots: { en: 'Phibotics · robots', zh: 'Phibotics · 机器人', to: 'experience' },
     bounty: { en: 'Bounty.ai · the board', zh: 'Bounty.ai · 悬赏板', to: 'experience' },
-    hangzhou: { en: 'Hangzhou · ZJU', zh: '杭州 · 浙大', to: 'education' },
+    hangzhou: { en: 'Hangzhou · ZJU', zh: '杭州 · 浙大', to: 'education', also: 'skills' },
     philadelphia: { en: 'Philadelphia · Penn', zh: '费城 · 宾大', to: 'education' },
     pitch: { en: 'Beyond the lab', zh: '实验室之外', to: 'life' }
   };
@@ -152,7 +152,7 @@
       if (front) front.classList.remove('on');
       if (best) best.classList.add('on');
       front = best;
-      markEls.forEach(function (el) { el.classList.toggle('here', !!best && MARKS[el.dataset.mark].to === best.id); });
+      markEls.forEach(function (el) { const d = MARKS[el.dataset.mark]; el.classList.toggle('here', !!best && (d.to === best.id || d.also === best.id)); });
     }
   }
   addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
