@@ -1077,7 +1077,7 @@
     { p: [31, 10, 52], t: [4, 8, 4], f: 46 },         /* 3 research: the cast house, the hammer */
     { p: [22, 4, 22], t: [50, -1, -12], f: 46 },      /* 4 experience: the lab floor, the board behind it */
     { p: [-22, 36, 60], t: [-56, 10, -4], f: 48 },    /* 5 education: Philadelphia, Hangzhou beyond it */
-    { p: [-22, 26, 4], t: [-38, 14, -62], f: 50 },    /* 6 skills: and Hangzhou, where the first of them were learned */
+    { p: [-26, 33, 4], t: [-42, 21, -62], f: 52 },    /* 6 skills: and Hangzhou, where the first of them were learned (held low and right of centre: the Education window is still up in the top left) */
     { p: [-10, 46, 36], t: [2, 6, 6], f: 50 },        /* 7 on the way across: the ironworks from above (no window stops here) */
     { p: [22, -3, 62], t: [40, -9, 34], f: 42 },      /* 8 life: the pitch */
     { p: [0, 68, 122], t: [10, 9, -8], f: 50 }        /* 9 the end: all of it, from above */
